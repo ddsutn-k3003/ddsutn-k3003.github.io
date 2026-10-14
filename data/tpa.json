@@ -1,0 +1,60 @@
+{
+  "intro": "El Trabajo Práctico Anual (TPA) se desarrolla durante toda la cursada con entregas periódicas. Es donde se aplican, sobre un mismo sistema, los temas que se ven en las clases.",
+  "etapas": [
+    {
+      "titulo": "Individual",
+      "desc": "Las Entregas 1 y 2 se resuelven de forma individual."
+    },
+    {
+      "titulo": "Grupal",
+      "desc": "Desde la Entrega 3 se trabaja en grupos hasta el final de la cursada."
+    },
+    {
+      "titulo": "Coloquio",
+      "desc": "La Entrega 7 es de coloquios y reentregas."
+    }
+  ],
+  "material": [
+    {
+      "titulo": "Consigna y contexto del TPA",
+      "desc": "El enunciado general y el contexto del sistema que se construye.",
+      "url": ""
+    },
+    {
+      "titulo": "Setup del entorno de desarrollo (Java / IA)",
+      "desc": "Cómo dejar listo el entorno para arrancar el TPA.",
+      "url": "https://drive.google.com/file/d/1ukPc0TLQ9XjR5R7I9QBC4SZx2bMTFQ6S/view"
+    },
+    {
+      "titulo": "Template de repositorio",
+      "desc": "Estructura inicial del repositorio del TPA.",
+      "url": ""
+    },
+    {
+      "titulo": "Plantilla de documentación",
+      "desc": "Formato para documentar las decisiones de diseño de cada entrega.",
+      "url": ""
+    },
+    {
+      "titulo": "Rúbrica de evaluación",
+      "desc": "Qué se mira en cada entrega y cómo se puntúa.",
+      "url": ""
+    },
+    {
+      "titulo": "Video: TDD trabajando con IA",
+      "desc": "Cómo escribir las pruebas primero cuando el código lo genera una IA.",
+      "url": ""
+    },
+    {
+      "titulo": "Video: deployment, con explicación y demo",
+      "desc": "Cómo se pone el sistema en producción.",
+      "url": ""
+    }
+  ],
+  "consignas": {
+    "_ejemplo": {
+      "consigna": "https://…",
+      "rubrica": "https://…"
+    }
+  }
+}

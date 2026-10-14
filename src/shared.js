@@ -22,7 +22,7 @@ export function proximas(dias, hoy, n = 4) {
 
 const SEMANA = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb']
 
-export function renderProximas(lista, hoy) {
+export function renderProximas(lista, hoy, primera) {
   if (!lista.length) {
     return '<p class="prox-vacio">No hay más fechas en este cronograma. El del próximo año se publica acá.</p>'
   }
@@ -30,12 +30,13 @@ export function renderProximas(lista, hoy) {
     .map((d, i) => {
       const [y, m, dd] = d.fecha.split('-').map(Number)
       const dow = SEMANA[new Date(Date.UTC(y, m - 1, dd, 12)).getUTCDay()]
-      const marca = d.fecha === hoy ? 'Hoy' : i === 0 ? 'Próxima fecha' : ''
+      const marca = d.fecha === hoy ? 'Hoy' : d.fecha === primera ? 'Primera clase' : i === 0 ? 'Próxima fecha' : ''
       const items = d.items
         .map((it) => `<li><span class="b b-${it.tipo}">${esc(ETIQUETA[it.tipo] ?? it.tipo)}</span><span class="prox-t">${esc(it.titulo)}</span></li>`)
         .join('')
       const virtual = /virtual/i.test(d.modalidad) ? '<span class="prox-mod">virtual</span>' : ''
-      return `<li class="prox-dia${i === 0 ? ' es-primera' : ''}"><div class="prox-fecha"><span class="prox-num">${String(dd).padStart(2, '0')}/${String(m).padStart(2, '0')}</span><span class="prox-dow">${dow}</span></div><div class="prox-cuerpo">${marca ? `<span class="prox-marca">${marca}</span>` : ''}<ul>${items}</ul>${virtual}</div></li>`
+      return `<li class="prox-dia${i === 0 ? ' es-primera' : ''}"><div class="prox-fecha"><span class="prox-num">${d.texto ? `${String(m).padStart(2, '0')}/${y}` : `${String(dd).padStart(2, '0')}/${String(m).padStart(2, '0')}`}</span><span class="prox-dow">${d.texto ? esc(d.texto) : dow}</span></div><div class="prox-cuerpo">${marca ? `<span class="prox-marca">${marca}</span>` : ''}<ul>${items}</ul>${virtual}</div></li>`
     })
     .join('')
 }
+

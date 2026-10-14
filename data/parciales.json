@@ -1,0 +1,616 @@
+{
+  "nota": "Preguntas y tarjetas de ejemplo para ir ampliando. Las pruebas viejas se agregan con un link en «viejos».",
+  "parciales": [
+    {
+      "id": "primero",
+      "titulo": "Primer parcial",
+      "corto": "1er parcial",
+      "resumen": "Va desde el comienzo de la cursada hasta el Primer Parcial: UML y recursos, diseño por capas, atributos de calidad, aplicaciones web, integración sincrónica, persistencia relacional, mapeo objeto-relacional y microservicios.",
+      "habilidades": [
+        "Comunicar una arquitectura con un diagrama de despliegue UML: componentes, nodos, protocolos y servicios externos.",
+        "Hacer diagramas de secuencia al nivel pedido: a nivel servicios, o de alto nivel con las capas de Fowler indicando a qué capa pertenece cada elemento.",
+        "Formular hipótesis sobre un problema de atributos de calidad y explicar cómo corroborarlas.",
+        "Diseñar una API REST: rutas, métodos HTTP, bodies y códigos de respuesta.",
+        "Pensar la tolerancia a fallos en la comunicación: timeouts, reintentos e idempotencia.",
+        "Pasar un modelo de dominio a un modelo relacional resolviendo los desajustes de impedancia.",
+        "Partir un monolito en microservicios con responsabilidades claras, una base por servicio y un único punto de entrada.",
+        "Justificar el uso de balanceo, caché y CDN."
+      ],
+      "aprobacion": "En el Primer Parcial 2026 se aprobaba con 60 puntos y no menos del 50 % en cada sección. En los pre-parciales, con 8 puntos y no menos del 50 % en cada sección. Confirmar para 2027.",
+      "viejos": [
+        {
+          "titulo": "Primer Parcial 2026 · Smart aDDS",
+          "fecha": "08/08/2026",
+          "desc": "Integración, capas y atributos de calidad, sincrónico y SQL, asincrónico y NoSQL. En 2027 los puntos asincrónicos y NoSQL pasan al segundo parcial.",
+          "url": "",
+          "resolucion": ""
+        },
+        {
+          "titulo": "Pre-Parcial 1 2026 · MundiaLive",
+          "fecha": "25/04/2026",
+          "desc": "Diseño por capas y atributos de calidad: arquitectura, diagrama de secuencia y detección de errores.",
+          "url": "",
+          "resolucion": ""
+        },
+        {
+          "titulo": "Pre-Parcial 2 2026 · MundiaLive",
+          "fecha": "30/05/2026",
+          "desc": "Microservicios, integración sincrónica y mapeo objeto-relacional.",
+          "url": "",
+          "resolucion": ""
+        }
+      ],
+      "errores": [
+        {
+          "tag": "Atributos",
+          "error": "Plantear como hipótesis algo que el enunciado ya descartó (por ejemplo, culpar al balanceador cuando dice que escala bien).",
+          "ok": "Leé qué datos ya te da el enunciado y apuntá a lo que no está descartado. Para cada hipótesis, decí qué métrica o prueba la confirma o la descarta."
+        },
+        {
+          "tag": "Atributos",
+          "error": "Escribir «habría que cambiar la arquitectura» y no dibujarla cuando el punto pide un diagrama.",
+          "ok": "Si piden un diagrama, el diagrama es la respuesta. Se corrige solo lo que está en la hoja."
+        },
+        {
+          "tag": "Capas",
+          "error": "En un diagrama de secuencia, usar un dato que sale de la nada, por ejemplo una lista de excepciones que nunca se consultó.",
+          "ok": "Si el dato está guardado, mostrá el mensaje a la capa de datos que lo trae."
+        },
+        {
+          "tag": "Capas",
+          "error": "Mensajes con los paréntesis vacíos.",
+          "ok": "Poné argumentos concretos en cada mensaje."
+        },
+        {
+          "tag": "Secuencia",
+          "error": "Hacer un diagrama de objetos de dominio cuando piden uno a nivel servicios.",
+          "ok": "A nivel servicios los participantes son componentes y sistemas externos, y los mensajes son las llamadas entre ellos."
+        },
+        {
+          "tag": "Microservicios",
+          "error": "Separar mal las responsabilidades.",
+          "ok": "Cada servicio con una responsabilidad de negocio clara y su propio dato."
+        },
+        {
+          "tag": "Microservicios",
+          "error": "Una sola base de datos para todos los componentes.",
+          "ok": "Cada servicio es dueño de su base. Los demás le piden los datos a través de su API."
+        },
+        {
+          "tag": "Microservicios",
+          "error": "No poner un único punto de entrada.",
+          "ok": "Los clientes entran por un API Gateway y no dependen de cómo está organizado el sistema por dentro."
+        },
+        {
+          "tag": "REST",
+          "error": "Usar PATCH sobre una ruta de acción, como PATCH /suscripciones/{id}/renovacion.",
+          "ok": "Una acción sobre el recurso va con POST: POST /suscripciones/{id}/renovacion. Si es una modificación parcial del recurso, PATCH /suscripciones/{id}."
+        },
+        {
+          "tag": "REST",
+          "error": "Confundir 200 con 201.",
+          "ok": "201 cuando se crea un recurso, 200 cuando se consulta o modifica. Es un error menor, pero conviene saberlo."
+        },
+        {
+          "tag": "Sync",
+          "error": "No contemplar idempotencia cuando falla una llamada de pago.",
+          "ok": "Si reintentás sin una clave de idempotencia, podés cobrar dos veces. Mandá un identificador de la operación para que repetirla no duplique el efecto."
+        },
+        {
+          "tag": "Sync",
+          "error": "Dibujar el timeout y no mostrar cómo se resuelve.",
+          "ok": "El diagrama tiene que mostrar qué pasa después: reintento con la misma clave, consulta del estado de la operación o dejarla pendiente."
+        },
+        {
+          "tag": "Sync",
+          "error": "No saber qué es un webhook.",
+          "ok": "El proveedor nos llama por HTTP cuando ocurre un evento, en lugar de que lo consultemos nosotros todo el tiempo."
+        },
+        {
+          "tag": "Sync",
+          "error": "Proponer algo asincrónico cuando piden una solución que no lo sea, ante un pico de webhooks.",
+          "ok": "Si el emisor reintenta hasta recibir la confirmación, un rate limit que rechaza el exceso alcanza: el reintento absorbe el pico."
+        },
+        {
+          "tag": "Integración",
+          "error": "Responder «caché» cuando el problema es contenido pesado pedido desde todo el mundo.",
+          "ok": "Es una CDN: copias del contenido en nodos cercanos al usuario, con el origen como fuente."
+        },
+        {
+          "tag": "ORM",
+          "error": "Proponer un batch nocturno o solo índices para un reporte lento y muy consultado.",
+          "ok": "La idea es desnormalizar: guardar el resultado ya calculado, por ejemplo en una entidad de informe, y leer ese valor."
+        },
+        {
+          "tag": "ORM",
+          "error": "No entregar el modelo relacional cuando lo piden y solo explicarlo.",
+          "ok": "Dibujá entidades, claves primarias, claves foráneas y cardinalidades."
+        },
+        {
+          "tag": "ORM",
+          "error": "Relacionar dos entidades sin una clave foránea que las vincule.",
+          "ok": "Toda relación termina en una FK, o en una tabla intermedia si es de muchos a muchos."
+        },
+        {
+          "tag": "ORM",
+          "error": "Dejar una lista de valores dentro de una entidad sin decir cómo se guarda.",
+          "ok": "Modelala como entidad propia o, si queda en la misma tabla, explicá cómo se codifica."
+        },
+        {
+          "tag": "Capas",
+          "error": "Responder «Verdadero» a que los microservicios garantizan por sí solos más disponibilidad.",
+          "ok": "Falso: depende de cómo se diseñen. El acoplamiento, los datos y la resiliencia pesan más que el estilo."
+        }
+      ],
+      "quiz": [
+        {
+          "tag": "Capas",
+          "p": "¿Cuál de estas afirmaciones sobre microservicios es correcta?",
+          "op": [
+            "Garantizan por sí solos mayor disponibilidad y escalabilidad.",
+            "Pueden mejorar la escalabilidad y la disponibilidad, pero depende de cómo se diseñen.",
+            "Siempre conviene partir un monolito en microservicios.",
+            "Eliminan la necesidad de un punto de entrada."
+          ],
+          "ok": 1,
+          "e": "Los microservicios no garantizan nada por sí solos: el acoplamiento, el manejo de datos y la resiliencia definen el resultado."
+        },
+        {
+          "tag": "Capas",
+          "p": "En una arquitectura por capas, ¿cómo accede el dominio a los datos?",
+          "op": [
+            "Directo a la base de datos, si hace falta rendimiento.",
+            "A través de la capa de datos.",
+            "A través de la capa de presentación.",
+            "Depende del motor de base de datos."
+          ],
+          "ok": 1,
+          "e": "El dominio no habla con la base: lo hace mediante la capa de acceso a datos. Saltearla acopla el dominio a la persistencia."
+        },
+        {
+          "tag": "REST",
+          "p": "¿Qué ruta y método usarías para renovar una suscripción existente?",
+          "op": [
+            "PATCH /suscripciones/{id}/renovacion",
+            "POST /suscripciones/{id}/renovacion",
+            "GET /renovarSuscripcion?id={id}",
+            "DELETE /suscripciones/{id}"
+          ],
+          "ok": 1,
+          "e": "Una acción sobre un recurso va con POST sobre una subruta. La otra opción válida es PATCH /suscripciones/{id} si se modifica el recurso. Un GET no debe tener efectos."
+        },
+        {
+          "tag": "Sync",
+          "p": "Una pasarela de pagos demora y el cliente reintenta el pedido. ¿Qué evita cobrar dos veces?",
+          "op": [
+            "Subir el timeout.",
+            "Hacer la operación idempotente.",
+            "Agregar una caché.",
+            "Escalar el servicio de pagos."
+          ],
+          "ok": 1,
+          "e": "Con una clave de idempotencia, repetir el mismo pedido produce el mismo resultado que hacerlo una sola vez."
+        },
+        {
+          "tag": "Sync",
+          "p": "Un proveedor reintenta sus webhooks hasta que le confirmes. Un pico satura la base por unos segundos. ¿Cuál es la solución no asincrónica más simple?",
+          "op": [
+            "Poner una cola de mensajes delante de la base.",
+            "Aplicar un rate limit.",
+            "Agregar réplicas de lectura.",
+            "Cachear las respuestas."
+          ],
+          "ok": 1,
+          "e": "El rate limit rechaza el exceso y el proveedor reintenta después. Una cola sería una solución asincrónica, que el enunciado excluye."
+        },
+        {
+          "tag": "Integración",
+          "p": "Muchas personas de todo el mundo descargan videos pesados. ¿Qué incorporás?",
+          "op": [
+            "Una CDN.",
+            "Una caché dentro del servidor.",
+            "Más ancho de banda en el origen.",
+            "Réplicas de la base de datos."
+          ],
+          "ok": 0,
+          "e": "Una CDN acerca copias del contenido al usuario y descarga al origen. Una caché en el servidor no resuelve la distancia."
+        },
+        {
+          "tag": "ORM",
+          "p": "Un informe con muchos datos históricos se consulta seguido y tarda. ¿Qué estrategia aplicás?",
+          "op": [
+            "Agregar índices a todas las columnas.",
+            "Guardar el informe ya calculado en su propia entidad.",
+            "Mandar el cálculo a una cola.",
+            "Cachear el resultado en el navegador."
+          ],
+          "ok": 1,
+          "e": "Desnormalizar: precalcular y guardar el resultado para que la consulta lea un valor listo."
+        },
+        {
+          "tag": "Microservicios",
+          "p": "Al partir un monolito en microservicios, ¿cómo se organizan los datos?",
+          "op": [
+            "Una sola base compartida por todos.",
+            "Cada servicio es dueño de su propia base.",
+            "Los datos se guardan en el API Gateway.",
+            "Todos los servicios leen las tablas de los demás."
+          ],
+          "ok": 1,
+          "e": "Compartir la base acopla los servicios. Cada uno expone sus datos mediante su API."
+        }
+      ],
+      "tarjetas": [
+        {
+          "tag": "Capas",
+          "p": "¿Cuáles son las tres capas del esquema de Fowler?",
+          "r": "Presentación, dominio y datos (acceso a datos)."
+        },
+        {
+          "tag": "Atributos",
+          "p": "¿Qué es escalar vertical y horizontalmente?",
+          "r": "Vertical: darle más recursos a una máquina. Horizontal: sumar instancias detrás de un balanceador."
+        },
+        {
+          "tag": "Atributos",
+          "p": "¿Qué es la disponibilidad?",
+          "r": "La proporción del tiempo en que el sistema está en condiciones de responder. Se suele expresar como porcentaje."
+        },
+        {
+          "tag": "Atributos",
+          "p": "¿En qué se diferencian logs, métricas y trazas?",
+          "r": "Logs: eventos puntuales. Métricas: valores numéricos a lo largo del tiempo, con los que se pueden armar alarmas. Trazas: el recorrido de un pedido entre servicios."
+        },
+        {
+          "tag": "Secuencia",
+          "p": "¿Qué cambia entre un diagrama de secuencia a nivel servicios y uno de dominio?",
+          "r": "A nivel servicios los participantes son componentes y sistemas externos y los mensajes son llamadas entre ellos. En el de dominio, son objetos del dominio."
+        },
+        {
+          "tag": "REST",
+          "p": "¿Qué significan los códigos 201, 400, 404, 409 y 429?",
+          "r": "201: creado. 400: pedido mal formado. 404: no existe. 409: conflicto con el estado actual. 429: demasiados pedidos."
+        },
+        {
+          "tag": "Sync",
+          "p": "¿Qué es la idempotencia?",
+          "r": "Que repetir una operación tiene el mismo efecto que hacerla una sola vez. En un POST se logra con una clave de idempotencia."
+        },
+        {
+          "tag": "Sync",
+          "p": "¿Qué es un webhook?",
+          "r": "Un aviso HTTP que el proveedor nos manda cuando ocurre un evento, en lugar de que lo consultemos periódicamente."
+        },
+        {
+          "tag": "Sync",
+          "p": "¿Para qué sirve un API Gateway?",
+          "r": "Es el único punto de entrada: enruta los pedidos a los servicios y puede autenticar o limitar el uso, sin exponer cómo está organizado el sistema."
+        },
+        {
+          "tag": "Integración",
+          "p": "¿Qué hace una CDN?",
+          "r": "Sirve copias del contenido desde nodos cercanos al usuario, bajando la latencia y la carga sobre el origen."
+        },
+        {
+          "tag": "ORM",
+          "p": "¿Qué es el desajuste de impedancia?",
+          "r": "La diferencia entre el modelo de objetos (herencia, colecciones, identidad) y el modelo relacional (tablas y claves)."
+        },
+        {
+          "tag": "ORM",
+          "p": "¿Cuándo conviene desnormalizar?",
+          "r": "Cuando una consulta frecuente y costosa justifica guardar datos duplicados o precalculados, a cambio de más trabajo al escribir."
+        }
+      ]
+    },
+    {
+      "id": "segundo",
+      "titulo": "Segundo parcial",
+      "corto": "2do parcial",
+      "resumen": "Va desde el Primer Parcial hasta el Segundo Parcial: integración asincrónica, persistencia no relacional, seguridad, ingeniería con IA, principios y patrones de diseño, y modelo de dominio.",
+      "habilidades": [
+        "Diseñar una integración asincrónica: publicador/suscriptor, colas de mensajes, colas de trabajos con workers y colas de mensajes fallidos.",
+        "Evitar mensajes duplicados o perdidos: idempotencia y manejo de fallos.",
+        "Comparar coreografía y orquestación para un proceso de varios pasos.",
+        "Elegir un tipo de base NoSQL y justificarlo según cómo se accede a los datos.",
+        "Proteger y acelerar un endpoint con caché y rate limit.",
+        "Detectar la violación de un principio de diseño y proponer cómo corregirla.",
+        "Elegir y aplicar un patrón de comportamiento, estructural o creacional a un caso.",
+        "Construir un modelo de dominio a partir de un enunciado."
+      ],
+      "aprobacion": "En los pre-parciales 2026 se aprobaba con 8 puntos y no menos del 50 % en cada sección. Confirmar para 2027.",
+      "viejos": [
+        {
+          "titulo": "Pre-Parcial 3 2026 · MundiaLive",
+          "fecha": "04/07/2026",
+          "desc": "Arquitecturas asincrónicas y NoSQL: publicador/suscriptor, workers, cola de mensajes fallidos, idempotencia, coreografía y orquestación, caché y rate limit.",
+          "url": "",
+          "resolucion": ""
+        },
+        {
+          "titulo": "Primer Parcial 2026 · Smart aDDS",
+          "fecha": "08/08/2026",
+          "desc": "Sus puntos de integración asincrónica y NoSQL entran en este parcial en 2027.",
+          "url": "",
+          "resolucion": ""
+        }
+      ],
+      "errores": [
+        {
+          "tag": "Async",
+          "error": "No hacer un publicador/suscriptor cuando el enunciado pide sumar un componente nuevo sin tocar al emisor.",
+          "ok": "El emisor publica en un tópico o cola y cada componente interesado consume la suya. Sumar uno nuevo no cambia al emisor."
+        },
+        {
+          "tag": "Async",
+          "error": "Ponerles workers a las colas de mensajes de un publicador/suscriptor.",
+          "ok": "Cada suscriptor toma los mensajes de su cola, y son mensajes, no trabajos para procesar. Un worker se usa cuando hay que procesar algo."
+        },
+        {
+          "tag": "Async",
+          "error": "Poner colas de trabajos sin workers.",
+          "ok": "Una cola de trabajos necesita workers que la consuman. Sin ellos, nadie hace el trabajo."
+        },
+        {
+          "tag": "Async",
+          "error": "Proponer separar en microservicios o escalar más los servicios para un procesamiento masivo.",
+          "ok": "Un proceso pesado que no debe bloquear al resto se resuelve con una cola de trabajos y un worker."
+        },
+        {
+          "tag": "Async",
+          "error": "Poner asincronismo donde conceptualmente no va.",
+          "ok": "Preguntate si quien llama necesita la respuesta para seguir. Si la necesita, es sincrónico."
+        },
+        {
+          "tag": "Async",
+          "error": "Poner un orquestador y que los módulos se sigan llamando entre sí.",
+          "ok": "Con orquestación, los servicios no se hablan entre ellos: todo lo coordina el orquestador."
+        },
+        {
+          "tag": "Secuencia",
+          "error": "Dibujar una interacción asincrónica como si fuera sincrónica.",
+          "ok": "La llamada asincrónica usa flecha de punta abierta y no espera respuesta antes de seguir."
+        },
+        {
+          "tag": "Async",
+          "error": "Poner la cola de mensajes fallidos (DLQ) en cualquier lado o ponerle un worker externo.",
+          "ok": "Va entre el componente y el servicio externo que falla. El reintento lo hace el mismo componente."
+        },
+        {
+          "tag": "Async",
+          "error": "Resolver mensajes duplicados con una base clave-valor, o decir «lo mandamos exactly-once» sin explicar cómo.",
+          "ok": "Hay que nombrar la idempotencia: el consumidor guarda el identificador del mensaje y descarta los repetidos."
+        },
+        {
+          "tag": "Async",
+          "error": "Decir que el worker «se encarga de validar» sin explicar cómo.",
+          "ok": "Explicá el mecanismo: qué dato guarda y qué consulta antes de procesar."
+        },
+        {
+          "tag": "Async",
+          "error": "Creer que con colas y workers no se pierde información.",
+          "ok": "También pueden caerse. Hace falta que las colas sean duraderas y que el mensaje se confirme recién cuando se procesó."
+        },
+        {
+          "tag": "Async",
+          "error": "Presentar la coreografía y no la alternativa, o no compararlas.",
+          "ok": "Si el diseño es una coreografía, la alternativa es una orquestación. Compará acoplamiento, visibilidad del flujo y punto único de falla."
+        },
+        {
+          "tag": "Integración",
+          "error": "Proponer que una plataforma externa publique en nuestros tópicos.",
+          "ok": "No podemos obligar a un tercero a publicar en una cola nuestra. Se consulta periódicamente o se usan sus webhooks, si los ofrece."
+        },
+        {
+          "tag": "NoSQL",
+          "error": "No manejar el criterio para elegir un tipo de base no relacional.",
+          "ok": "Elegí por cómo se accede a los datos: clave-valor, documentos, columnas, grafos o series de tiempo, y justificá con ese acceso."
+        },
+        {
+          "tag": "Caché",
+          "error": "Proponer una caché para una métrica que justamente querés ver cambiar.",
+          "ok": "Cachear sirve para datos que cambian poco y se piden mucho, como un ranking. Una métrica en vivo pierde sentido si se cachea."
+        },
+        {
+          "tag": "Caché",
+          "error": "Olvidarse de proteger el endpoint de pedidos abusivos.",
+          "ok": "Caché para evitar recalcular y rate limit para limitar a quien pide demasiado."
+        }
+      ],
+      "quiz": [
+        {
+          "tag": "Async",
+          "p": "El componente de streaming avisa goles a varios componentes y se quiere sumar uno nuevo sin tocar el streaming. ¿Qué patrón conviene?",
+          "op": [
+            "Llamadas sincrónicas a cada componente.",
+            "Publicador/suscriptor.",
+            "Una única cola de trabajos.",
+            "Consultas periódicas desde el streaming."
+          ],
+          "ok": 1,
+          "e": "El emisor publica y cada interesado se suscribe. Sumar un suscriptor no modifica al emisor."
+        },
+        {
+          "tag": "Async",
+          "p": "¿A qué cola corresponde agregarle workers?",
+          "op": [
+            "A la cola de mensajes de un suscriptor.",
+            "A la cola de trabajos.",
+            "A ambas por igual.",
+            "A ninguna."
+          ],
+          "ok": 1,
+          "e": "Los workers procesan trabajos. Los mensajes de un suscriptor los toma el propio componente."
+        },
+        {
+          "tag": "Async",
+          "p": "Un servicio externo falla de vez en cuando y no querés perder los mensajes ni frenar el resto. ¿Qué incorporás?",
+          "op": [
+            "Una cola de mensajes fallidos (DLQ).",
+            "Un timeout más largo.",
+            "Una caché.",
+            "Un balanceador."
+          ],
+          "ok": 0,
+          "e": "La DLQ guarda los mensajes que no pudieron procesarse para reintentarlos o analizarlos sin frenar la cola principal."
+        },
+        {
+          "tag": "Async",
+          "p": "Los usuarios reciben notificaciones repetidas. ¿Qué concepto resuelve el problema?",
+          "op": [
+            "Una base clave-valor.",
+            "Idempotencia en quien consume el mensaje.",
+            "Escalar el notificador.",
+            "Cambiar a orquestación."
+          ],
+          "ok": 1,
+          "e": "Si el consumidor registra qué mensajes ya procesó y descarta los repetidos, un duplicado no produce un segundo efecto."
+        },
+        {
+          "tag": "Async",
+          "p": "Un componente central le indica a cada servicio qué paso ejecutar y en qué orden. ¿Qué es?",
+          "op": [
+            "Coreografía.",
+            "Orquestación.",
+            "Publicador/suscriptor.",
+            "Balanceo de carga."
+          ],
+          "ok": 1,
+          "e": "En la orquestación decide un coordinador. En la coreografía, cada servicio reacciona a los eventos de los otros."
+        },
+        {
+          "tag": "Integración",
+          "p": "Querés obtener métricas de una plataforma externa. ¿Sirve que ella publique en tus tópicos?",
+          "op": [
+            "Sí, siempre.",
+            "No, no se puede obligar a un tercero a publicar en nuestra cola: se consulta periódicamente o se usan sus webhooks.",
+            "Sí, si usás una CDN.",
+            "Sí, si le agregás workers."
+          ],
+          "ok": 1,
+          "e": "El publicador/suscriptor supone que los dos lados usan la misma infraestructura de mensajería."
+        },
+        {
+          "tag": "NoSQL",
+          "p": "Un sistema accede siempre por una clave, por ejemplo sesiones de usuario. ¿Qué tipo de base NoSQL encaja mejor?",
+          "op": [
+            "Clave-valor.",
+            "Grafos.",
+            "Documentos con consultas complejas.",
+            "Columnar para analítica."
+          ],
+          "ok": 0,
+          "e": "Si el acceso es solo por clave, una base clave-valor es simple y rápida."
+        },
+        {
+          "tag": "Patrones",
+          "p": "Necesitás sumarle responsabilidades a un objeto en ejecución sin crear una subclase por cada combinación. ¿Qué patrón?",
+          "op": [
+            "Adapter.",
+            "Decorator.",
+            "Facade.",
+            "Singleton."
+          ],
+          "ok": 1,
+          "e": "Decorator envuelve al objeto y agrega comportamiento componiendo, sin multiplicar subclases."
+        },
+        {
+          "tag": "Patrones",
+          "p": "¿Qué distingue a State de Strategy?",
+          "op": [
+            "Nada: son el mismo patrón.",
+            "En State el objeto cambia su comportamiento según su estado interno. En Strategy, quien usa el objeto elige el algoritmo.",
+            "State es creacional y Strategy es estructural.",
+            "Strategy no usa polimorfismo."
+          ],
+          "ok": 1,
+          "e": "Los dos usan composición y polimorfismo, pero la intención es distinta: cambio de estado frente a algoritmo intercambiable."
+        },
+        {
+          "tag": "Principios",
+          "p": "Un if/else por tipo que hay que modificar cada vez que aparece un tipo nuevo viola principalmente:",
+          "op": [
+            "Abierto/cerrado (OCP).",
+            "Sustitución de Liskov.",
+            "Segregación de interfaces.",
+            "Ninguno."
+          ],
+          "ok": 0,
+          "e": "Para agregar un tipo hay que modificar código existente. Con polimorfismo se extiende sin tocarlo."
+        }
+      ],
+      "tarjetas": [
+        {
+          "tag": "Async",
+          "p": "¿En qué se diferencian una cola de mensajes y una cola de trabajos?",
+          "r": "Los mensajes comunican hechos y los consume cada suscriptor. Los trabajos son tareas a procesar y las toman workers."
+        },
+        {
+          "tag": "Async",
+          "p": "¿Qué es una DLQ?",
+          "r": "Una cola donde van los mensajes que no se pudieron procesar, para no perderlos ni frenar a los demás."
+        },
+        {
+          "tag": "Async",
+          "p": "¿Coreografía u orquestación?",
+          "r": "Coreografía: cada servicio reacciona a eventos. Orquestación: un coordinador central decide los pasos."
+        },
+        {
+          "tag": "Async",
+          "p": "¿Qué es una SAGA?",
+          "r": "Una secuencia de transacciones locales con acciones compensatorias si un paso falla, para mantener la consistencia sin una transacción distribuida."
+        },
+        {
+          "tag": "Async",
+          "p": "¿Qué es la consistencia eventual?",
+          "r": "Que los datos pueden estar temporalmente distintos entre componentes, pero convergen si no hay nuevos cambios."
+        },
+        {
+          "tag": "NoSQL",
+          "p": "¿Cuáles son los tipos de bases NoSQL?",
+          "r": "Clave-valor, documentos, columnares, grafos y series de tiempo."
+        },
+        {
+          "tag": "NoSQL",
+          "p": "¿Qué es CQRS?",
+          "r": "Separar el modelo de escritura (comandos) del de lectura (consultas), para optimizar cada uno por separado."
+        },
+        {
+          "tag": "Seguridad",
+          "p": "¿Autenticación o autorización?",
+          "r": "Autenticación: quién sos. Autorización: qué podés hacer."
+        },
+        {
+          "tag": "IA",
+          "p": "¿Qué es Model Context Protocol?",
+          "r": "Un protocolo abierto para que las aplicaciones de IA se conecten a herramientas y datos a través de servidores con una interfaz estándar."
+        },
+        {
+          "tag": "Principios",
+          "p": "¿Qué significa SOLID?",
+          "r": "Responsabilidad única, abierto/cerrado, sustitución de Liskov, segregación de interfaces e inversión de dependencias."
+        },
+        {
+          "tag": "Patrones",
+          "p": "¿Cuándo usar Strategy?",
+          "r": "Cuando hay varias formas de hacer lo mismo y se quiere elegir una sin if/else, encapsulando cada algoritmo."
+        },
+        {
+          "tag": "Patrones",
+          "p": "¿Qué hace Adapter y qué hace Facade?",
+          "r": "Adapter convierte una interfaz en la que el cliente espera. Facade ofrece una interfaz simple a un subsistema complejo."
+        },
+        {
+          "tag": "Patrones",
+          "p": "¿Qué riesgos tiene Singleton?",
+          "r": "Introduce estado global y acopla el código a una instancia concreta, lo que dificulta las pruebas."
+        },
+        {
+          "tag": "Patrones",
+          "p": "¿Qué resuelve Observer?",
+          "r": "Que un objeto avise a muchos interesados cuando cambia, sin conocerlos de forma concreta."
+        }
+      ]
+    }
+  ]
+}

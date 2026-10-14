@@ -3,18 +3,46 @@
     {
       "titulo": "De la cátedra",
       "links": [
-        { "t": "Organización en GitHub", "d": "Repositorios del curso y plantillas del TP", "url": "https://github.com/ddsutn-k3003" },
-        { "t": "Repositorio de las clases", "d": "Código fuente de diapositivas y apuntes", "url": "https://github.com/ddsutn-k3003/clases" },
-        { "t": "Aula Virtual", "d": "Avisos, cuestionarios y enunciados", "url": "" },
-        { "t": "Servidor de Discord", "d": "Consultas y conformación de grupos", "url": "" }
+        {
+          "t": "Organización en GitHub",
+          "d": "Repositorios del curso y plantillas del TP",
+          "url": "https://github.com/ddsutn-k3003"
+        },
+        {
+          "t": "Repositorio de las clases",
+          "d": "Código fuente de diapositivas y apuntes",
+          "url": "https://github.com/ddsutn-k3003/clases"
+        },
+        {
+          "t": "Aula Virtual",
+          "d": "Avisos, cuestionarios y enunciados",
+          "url": "https://aulasvirtuales.frba.utn.edu.ar/course/view.php?id=29578"
+        },
+        {
+          "t": "Servidor de Discord",
+          "d": "Consultas y conformación de grupos",
+          "url": ""
+        }
       ]
     },
     {
       "titulo": "Para diagramar",
       "links": [
-        { "t": "Mermaid", "d": "Documentación del lenguaje de diagramas en texto", "url": "https://mermaid.js.org/" },
-        { "t": "Mermaid Live Editor", "d": "Editor en línea para probar un diagrama", "url": "https://mermaid.live/" },
-        { "t": "Especificación de UML 2.5.1", "d": "El estándar, publicado por el OMG", "url": "https://www.omg.org/spec/UML/2.5.1" }
+        {
+          "t": "Mermaid",
+          "d": "Documentación del lenguaje de diagramas en texto",
+          "url": "https://mermaid.js.org/"
+        },
+        {
+          "t": "Mermaid Live Editor",
+          "d": "Editor en línea para probar un diagrama",
+          "url": "https://mermaid.live/"
+        },
+        {
+          "t": "Especificación de UML 2.5.1",
+          "d": "El estándar, publicado por el OMG",
+          "url": "https://www.omg.org/spec/UML/2.5.1"
+        }
       ]
     }
   ]

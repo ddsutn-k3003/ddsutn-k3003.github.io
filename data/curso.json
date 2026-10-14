@@ -3,14 +3,14 @@
   "codigo": "K3003",
   "turno": "Sábados por la mañana",
   "facultad": "UTN FRBA",
-  "cronogramaId": "1I-NQ1ryXsrlQEA1aRfCUOqyCMQq7EcA_ABgMFGNag18",
+  "cronogramaId": "1Ky0q9aQU0u5rGUI-F7lGz9hDMpxpjsRfQUzU7Dt-81A",
   "documentos": [
     {
       "id": "cronograma",
       "etiqueta": "Google Sheets",
       "titulo": "Cronograma",
-      "desc": "Fechas de cada clase, material de lectura previa, parcialitos, pre-parciales, parciales y entregas del Trabajo Práctico.",
-      "url": "https://docs.google.com/spreadsheets/d/1I-NQ1ryXsrlQEA1aRfCUOqyCMQq7EcA_ABgMFGNag18/edit?usp=sharing",
+      "desc": "Fechas de cada clase, pre-parciales, parciales, recuperatorios y entregas del Trabajo Práctico.",
+      "url": "https://docs.google.com/spreadsheets/d/1Ky0q9aQU0u5rGUI-F7lGz9hDMpxpjsRfQUzU7Dt-81A/edit?usp=sharing",
       "accion": "Abrir el cronograma"
     },
     {
@@ -43,5 +43,6 @@
   ],
   "mascota": {
     "activa": true
-  }
+  },
+  "anio": 2027
 }

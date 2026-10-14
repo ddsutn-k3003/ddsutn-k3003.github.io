@@ -1,62 +1,143 @@
 {
-  "nota": "Temas según el cronograma 2026. El orden puede ajustarse en cada cursada.",
+  "nota": "Fechas y temas según el cronograma 2027. El orden puede ajustarse durante la cursada.",
   "bloques": [
     {
       "id": "intro",
       "titulo": "Introducción: UML y recursos de diseño",
-      "corto": "Intro",
       "evalua": null,
       "temas": [
-        { "ts": ["T1"], "titulo": "UML: diagramas de dominio", "clase": "C01" },
-        { "ts": ["T2"], "titulo": "Recursos: diagramas de despliegue y de componentes" }
+        {
+          "titulo": "UML: diagramas de dominio",
+          "match": "Diagramas de Dominio",
+          "clase": "C01"
+        },
+        {
+          "titulo": "Recursos: diagramas de despliegue y de componentes",
+          "match": "^Recursos"
+        },
+        {
+          "titulo": "Introducción a los patrones del TPA",
+          "match": "Intro Patrones del TPA"
+        }
       ]
     },
     {
       "id": "capas",
       "titulo": "Diseño por capas y atributos de calidad",
-      "corto": "Capas",
       "evalua": "Pre-Parcial 1",
       "temas": [
-        { "ts": ["T3", "T5"], "titulo": "Diseño por capas" },
-        { "ts": ["T4", "T6"], "titulo": "Atributos de calidad y arquitecturas de software" }
+        {
+          "titulo": "Diseño por capas",
+          "match": "^Diseño por capas"
+        },
+        {
+          "titulo": "Atributos de calidad y arquitecturas de software",
+          "match": "Atribut\\w* de calidad|^Arq SW"
+        },
+        {
+          "titulo": "Observabilidad y métricas",
+          "match": "^Observabilidad"
+        }
       ]
     },
     {
       "id": "sync",
-      "titulo": "Arquitecturas sincrónicas y modelo de dominio",
-      "corto": "Sincrónicas",
+      "titulo": "Aplicaciones web, integración sincrónica y persistencia",
       "evalua": "Pre-Parcial 2",
       "temas": [
-        { "ts": ["T7", "T8"], "titulo": "Integración sincrónica de aplicaciones" },
-        { "ts": ["T9"], "titulo": "Persistencia relacional" },
-        { "ts": ["T10"], "titulo": "Mapeo objeto-relacional" },
-        { "ts": ["T11", "T15"], "titulo": "Arquitectura de microservicios" },
-        { "ts": ["T12"], "titulo": "Aplicaciones web y arquitectura Render Server" }
+        {
+          "titulo": "Aplicaciones web y arquitectura Render Server",
+          "match": "^Aplicaciones Web"
+        },
+        {
+          "titulo": "Integración sincrónica de aplicaciones",
+          "match": "^Integración sincrónica"
+        },
+        {
+          "titulo": "Persistencia relacional",
+          "match": "^Persistencia Relacional"
+        },
+        {
+          "titulo": "Mapeo objeto-relacional",
+          "match": "Mapeo Objetos"
+        },
+        {
+          "titulo": "Arquitectura de microservicios",
+          "match": "Microservicios"
+        },
+        {
+          "titulo": "Temas pendientes: cloud, caché y CDN",
+          "match": "^Temas Pendientes"
+        }
       ]
     },
     {
       "id": "async",
-      "titulo": "Arquitecturas asincrónicas y NoSQL",
-      "corto": "Asincrónicas",
+      "titulo": "Integración asincrónica, NoSQL y seguridad",
       "evalua": "Pre-Parcial 3",
       "temas": [
-        { "ts": ["T13"], "titulo": "Integración asincrónica de aplicaciones" },
-        { "ts": ["T14"], "titulo": "Persistencia no relacional" },
-        { "ts": ["T16"], "titulo": "Observabilidad" },
-        { "ts": ["T17"], "titulo": "Seguridad" },
-        { "ts": ["T18"], "titulo": "Model Context Protocol" }
+        {
+          "titulo": "Integración asincrónica de aplicaciones",
+          "match": "^Integración asincrónica"
+        },
+        {
+          "titulo": "Persistencia no relacional",
+          "match": "^Persistencia No Relacional"
+        },
+        {
+          "titulo": "NewSQL, datos no estructurados y CQRS",
+          "match": "^New SQL"
+        },
+        {
+          "titulo": "Seguridad",
+          "match": "^Seguridad"
+        }
+      ]
+    },
+    {
+      "id": "ia",
+      "titulo": "Ingeniería con IA",
+      "evalua": null,
+      "temas": [
+        {
+          "titulo": "Introducción a AI Engineering: LLMs y agentes",
+          "match": "^Intro AI Engineering"
+        },
+        {
+          "titulo": "Model Context Protocol",
+          "match": "^Model Context Protocol"
+        }
       ]
     },
     {
       "id": "patrones",
-      "titulo": "Principios y patrones de diseño",
-      "corto": "Patrones",
-      "evalua": "Pre-Parcial 4 y 5 · Refactor",
+      "titulo": "Principios, patrones de diseño y modelo de dominio",
+      "evalua": "Pre-Parcial 4",
       "temas": [
-        { "ts": ["T19"], "titulo": "Principios del diseño" },
-        { "ts": ["T20"], "titulo": "Patrones de comportamiento" },
-        { "ts": ["T21"], "titulo": "Patrones estructurales" },
-        { "ts": ["T22"], "titulo": "Patrones creacionales" }
+        {
+          "titulo": "Principios del diseño",
+          "match": "^Principios del Diseño"
+        },
+        {
+          "titulo": "Patrones de comportamiento",
+          "match": "Patrones de Comportamiento"
+        },
+        {
+          "titulo": "Patrones estructurales",
+          "match": "Patrones Estructurales"
+        },
+        {
+          "titulo": "Práctica de modelado de dominio",
+          "match": "Modelado de Dominio"
+        },
+        {
+          "titulo": "Patrones creacionales",
+          "match": "Patrones Creacionales"
+        },
+        {
+          "titulo": "Práctica: resolución de un final",
+          "match": "Resolucion de un Final"
+        }
       ]
     }
   ]

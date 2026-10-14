@@ -9,7 +9,10 @@ Sitio estático de la cátedra de Diseño de Sistemas de Información (UTN FRBA)
 |---|---|
 | Fechas del cronograma | La planilla de Google (se lee sola al construir, todos los días). Copia de respaldo en `data/cronograma.csv` |
 | Documentos principales y equipo | `data/curso.json` |
-| Roadmap por bloques | `data/roadmap.json` |
+| Roadmap por bloques | `data/roadmap.json` (cada tema tiene un `match` que busca su fecha en el cronograma; el build avisa si algo no coincide) |
+| TPA: etapas, consignas, rúbricas y material | `data/tpa.json` (las consignas y rúbricas van en `consignas`, por número de entrega: `"1"`, `"2"`, … `"final"`, `"diciembre"`) |
+| Parciales: errores, autocorrección, tarjetas y parciales viejos | `data/parciales.json` |
+| PDF u otros archivos propios | carpeta `public/` (se copia tal cual; por ejemplo `public/parciales/2026-primer-parcial.pdf` se abre en `/parciales/2026-primer-parcial.pdf`) |
 | Apuntes teóricos | `data/apuntes.json` |
 | Links de utilidad | `data/links.json` |
 | Clases publicadas | Salen del repo `clases` (`/clases/classes.json`). Copia de respaldo en `data/classes.json` |

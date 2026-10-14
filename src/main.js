@@ -8,7 +8,7 @@
     datos = JSON.parse(document.getElementById('datos-calendario').textContent)
     var hoy = hoyISO()
     var cont = document.getElementById('prox-lista')
-    if (cont) cont.innerHTML = renderProximas(proximas(datos, hoy, 4), hoy)
+    if (cont) cont.innerHTML = renderProximas(proximas(datos, hoy, 4), hoy, datos[0] && datos[0].fecha)
   } catch (e) {}
 
   var $ = function (s, r) { return (r || document).querySelector(s) }
@@ -278,4 +278,91 @@
     } else m.irA('mancha', reduce ? 0 : 520)
   }, reduce ? 0 : 1100)
   if (!reduce) { ciclo(); setInterval(function () { if (!s.ocupada && !s.dormida) m.parpadear() }, 4300) }
+})()
+
+/* Páginas de TPA y parciales: estado de las entregas, pestañas, filtros, autocorrección y tarjetas. */
+;(function () {
+  var $ = function (s, r) { return (r || document).querySelector(s) }
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)) }
+  document.documentElement.classList.add('js')
+
+  /* Entregas del TPA: pasada, próxima o de hoy, según la fecha del navegador. */
+  var hoy = hoyISO()
+  var marcada = false
+  $$('.ent').forEach(function (el) {
+    var f = el.getAttribute('data-fecha')
+    el.classList.remove('pasada', 'proxima', 'hoy')
+    if (f < hoy) el.classList.add('pasada')
+    else if (f === hoy) { el.classList.add('hoy'); marcada = true }
+    else if (!marcada) { el.classList.add('proxima'); marcada = true }
+  })
+
+  /* Pestañas de parciales (con link directo en el sitio de varias páginas: #segundo). */
+  var tabs = $$('.tab')
+  if (tabs.length) {
+    var multi = !document.querySelector('.pg')
+    var abrir = function (id, guardar) {
+      tabs.forEach(function (t) { t.setAttribute('aria-selected', String(t.getAttribute('data-tab') === id)) })
+      $$('.pp').forEach(function (p) { p.hidden = p.getAttribute('data-panel') !== id })
+      if (guardar && multi && history.replaceState) history.replaceState(null, '', '#' + id)
+    }
+    tabs.forEach(function (t) { t.addEventListener('click', function () { abrir(t.getAttribute('data-tab'), true) }) })
+    var ini = multi ? location.hash.replace('#', '') : ''
+    abrir(tabs.some(function (t) { return t.getAttribute('data-tab') === ini }) ? ini : tabs[0].getAttribute('data-tab'), false)
+  }
+
+  /* Filtros por etiqueta (errores y tarjetas). */
+  $$('.filtros').forEach(function (f) {
+    f.hidden = false
+    var items = $$(f.getAttribute('data-filtros') === 'err' ? '.er' : '.tj', f.parentNode)
+    $$('.fl', f).forEach(function (b) {
+      b.addEventListener('click', function () {
+        $$('.fl', f).forEach(function (o) { o.setAttribute('aria-pressed', String(o === b)) })
+        var tag = b.getAttribute('data-tag')
+        items.forEach(function (it) { it.hidden = !!tag && it.getAttribute('data-tag') !== tag })
+      })
+    })
+  })
+
+  /* Tarjetas: dar vuelta. */
+  $$('.tj').forEach(function (t) {
+    t.addEventListener('click', function () { t.setAttribute('aria-expanded', String(t.getAttribute('aria-expanded') !== 'true')) })
+  })
+
+  /* Autocorrección: se mezclan las opciones y se corrige al elegir. */
+  $$('.quiz').forEach(function (quiz) {
+    var preguntas = $$('.q', quiz)
+    var punto = $('.quiz-pt', quiz)
+    var reset = $('.quiz-reset', quiz)
+    preguntas.forEach(function (q) {
+      var cont = $('.q-ops', q)
+      var ops = $$('.qo', cont)
+      for (var i = ops.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); cont.insertBefore(ops[j], ops[i]); ops = $$('.qo', cont) }
+      $$('.qo', q).forEach(function (b) {
+        b.addEventListener('click', function () {
+          if (q.classList.contains('respondida')) return
+          q.classList.add('respondida')
+          var acerto = b.hasAttribute('data-correcta')
+          $$('.qo', q).forEach(function (o) { o.disabled = true; if (o.hasAttribute('data-correcta')) o.classList.add('ok') })
+          if (!acerto) b.classList.add('mal')
+          q.setAttribute('data-acerto', acerto ? '1' : '0')
+          actualizar()
+        })
+      })
+    })
+    function actualizar() {
+      var hechas = preguntas.filter(function (q) { return q.classList.contains('respondida') })
+      var buenas = hechas.filter(function (q) { return q.getAttribute('data-acerto') === '1' })
+      punto.textContent = 'Respondidas ' + hechas.length + ' de ' + preguntas.length + ' · Correctas ' + buenas.length
+      reset.hidden = hechas.length === 0
+    }
+    reset.addEventListener('click', function () {
+      preguntas.forEach(function (q) {
+        q.classList.remove('respondida')
+        q.removeAttribute('data-acerto')
+        $$('.qo', q).forEach(function (o) { o.disabled = false; o.classList.remove('ok', 'mal') })
+      })
+      actualizar()
+    })
+  })
 })()

@@ -2,12 +2,12 @@
 //   npm run build                       -> sitio para GitHub Pages
 //   npm run single                      -> un solo archivo HTML (vista previa), en dist-single/
 //   CLASES_BASE=https://.../clases/     -> dónde está publicado el repo de clases (por defecto /clases/)
-import { copyFileSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseCronograma } from './cronograma.mjs'
 import { COLORES, NOMBRES_EXPRESIONES, NOMBRES_FORMAS, faviconSvg, svgEstatico } from '../src/mascota.js'
-import { hoyISO, proximas, renderProximas } from '../src/shared.js'
+import { ETIQUETA, hoyISO, proximas, renderProximas } from '../src/shared.js'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const single = process.argv.includes('--single')
@@ -21,6 +21,8 @@ const curso = json('data/curso.json')
 const roadmap = json('data/roadmap.json')
 const apuntes = json('data/apuntes.json')
 const links = json('data/links.json')
+const tpa = json('data/tpa.json')
+const parcialesData = json('data/parciales.json')
 const clases = json('data/classes.json').classes
 const cron = parseCronograma(read('data/cronograma.csv'))
 const hoy = hoyISO()
@@ -58,17 +60,34 @@ function documento(d, i) {
 </article>`
 }
 
+/* ---------- Fechas del cronograma ---------- */
+const dd = (f) => `${f.slice(8, 10)}/${f.slice(5, 7)}`
+const fechaCorta = (d) => (d.texto ? d.texto : dd(d.fecha))
+const diasDe = (re, tipos = ['clase']) => cron.dias.filter((d) => d.items.some((it) => tipos.includes(it.tipo) && re.test(it.titulo)))
+const itemsClase = new Set()
+for (const b of roadmap.bloques) {
+  for (const t of b.temas) {
+    t.dias = diasDe(new RegExp(t.match, 'i'))
+    t.dias.forEach((d) => d.items.filter((it) => it.tipo === 'clase' && new RegExp(t.match, 'i').test(it.titulo)).forEach((it) => itemsClase.add(`${d.fecha}|${it.titulo}`)))
+    if (!t.dias.length) console.warn(`AVISO roadmap: el tema "${t.titulo}" no coincide con ninguna fecha del cronograma`)
+  }
+  b.preparcial = b.evalua ? cron.dias.find((d) => d.items.some((it) => it.tipo === 'preparcial' && it.titulo.startsWith(b.evalua))) : null
+}
+for (const d of cron.dias) for (const it of d.items) if (it.tipo === 'clase' && !itemsClase.has(`${d.fecha}|${it.titulo}`)) console.warn(`AVISO roadmap: "${it.titulo}" (${dd(d.fecha)}) no está en ningún bloque de data/roadmap.json`)
+
 function bloque(b, i) {
   const stops = b.temas
     .map((t) => {
       const chip = t.clase
         ? `<a class="chip" href="#clase-${esc(t.clase)}">${esc(t.clase)} · Ver clase</a>`
         : '<span class="chip off">Próximamente</span>'
-      return `<li class="stop"><span class="ts">${t.ts.join(' · ')}</span><span class="tt">${esc(t.titulo)}</span>${chip}</li>`
+      const fechas = t.dias.length ? t.dias.map(fechaCorta).join(' · ') : '—'
+      return `<li class="stop"><span class="ts">${esc(fechas)}</span><span class="tt">${esc(t.titulo)}</span>${chip}</li>`
     })
     .join('')
+  const evalua = b.evalua ? `${b.evalua}${b.preparcial ? ` · ${fechaCorta(b.preparcial)}` : ''}` : ''
   return `<div class="blk rv" id="bloque-${esc(b.id)}">
-  <div class="blk-h"><p class="blk-n" aria-hidden="true">${String(i).padStart(2, '0')}</p><h3>${esc(b.titulo)}</h3>${b.evalua ? `<span class="eval">${esc(b.evalua)}</span>` : ''}</div>
+  <div class="blk-h"><p class="blk-n" aria-hidden="true">${String(i).padStart(2, '0')}</p><h3>${esc(b.titulo)}</h3>${evalua ? `<span class="eval">${esc(evalua)}</span>` : ''}</div>
   <ol class="stops">${stops}</ol>
 </div>`
 }
@@ -119,14 +138,17 @@ const numClases = [...new Set(clases.map((c) => c.num))].sort()
 const cronUrl = curso.documentos[0].url
 
 /* ---------- Páginas ---------- */
-// Tres páginas: inicio (cronograma, documentos y links), roadmap y clases, y apuntes.
-// En la vista previa de un solo archivo las tres conviven y se alternan con el hash.
+// Páginas: inicio (cronograma, documentos y links), roadmap y clases, TPA, parciales y apuntes.
+// En la vista previa de un solo archivo conviven todas y se alternan con el hash.
 const PAGINAS = [
   { id: 'inicio', href: '/', t: 'Inicio' },
-  { id: 'roadmap', href: '/roadmap/', t: 'Roadmap y clases' },
+  { id: 'roadmap', href: '/roadmap/', t: 'Roadmap' },
+  { id: 'tpa', href: '/tpa/', t: 'TPA' },
+  { id: 'parciales', href: '/parciales/', t: 'Parciales' },
   { id: 'apuntes', href: '/apuntes/', t: 'Apuntes' },
   { id: 'links', href: '/#links', t: 'Links' },
 ]
+const pagina_ = (id) => PAGINAS.find((p) => p.id === id)
 const hrefDe = (p) => (single ? `#${p.id}` : p.href)
 
 const cabecera = (actual) => `<header class="top"><div class="wrap">
@@ -145,16 +167,16 @@ const paginaInicio = () => `<main id="main-inicio">
   <div>
     <p class="sig">&gt; ddsi --curso k3003<span class="cur"></span></p>
     <h1>${esc(curso.nombre)}</h1>
-    <p class="sub">Todo el material del curso en un solo lugar: cronograma, clases, apuntes y recursos para estudiar.</p>
-    <p class="meta">${esc(curso.codigo)} · ${esc(curso.turno)} · ${esc(curso.facultad)}</p>
+    <p class="sub">Todo el material del curso en un solo lugar: cronograma, clases, TPA, parciales y apuntes.</p>
+    <p class="meta">${esc(curso.codigo)} · ${esc(curso.turno)} · ${esc(curso.facultad)} · ${esc(curso.anio)}</p>
     <div class="cta">
       <a class="btn btn-p" href="${esc(cronUrl)}" target="_blank" rel="noopener">Abrir el cronograma <span class="arr">↗</span></a>
-      <a class="btn btn-s" href="${hrefDe(PAGINAS[1])}">Ver roadmap y clases</a>
+      <a class="btn btn-s" href="${hrefDe(pagina_('roadmap'))}">Ver roadmap y clases</a>
     </div>
   </div>
   <aside class="prox" aria-label="Próximas fechas">
     <div class="prox-h"><b>&gt; lo que viene</b><a href="${esc(cronUrl)}" target="_blank" rel="noopener">Cronograma completo ↗</a></div>
-    <ol id="prox-lista">${renderProximas(proximas(cron.dias, hoy, 4), hoy)}</ol>
+    <ol id="prox-lista">${renderProximas(proximas(cron.dias, hoy, 4), hoy, cron.dias[0]?.fecha)}</ol>
   </aside>
 </div></section>
 
@@ -166,8 +188,10 @@ const paginaInicio = () => `<main id="main-inicio">
 <section class="sec band" id="material"><div class="wrap">
   ${secHead('material', 'Para estudiar')}
   <div class="sec-body docs">
-    ${tarjetaPagina(PAGINAS[1], 'Roadmap y clases', 'Los temas del curso por bloque, con las diapositivas y el apunte de cada clase.', 'Ver el roadmap')}
-    ${tarjetaPagina(PAGINAS[2], 'Apuntes teóricos', 'Documentos de la cátedra para estudiar cada tema con calma.', 'Ver los apuntes')}
+    ${tarjetaPagina(pagina_('roadmap'), 'Roadmap y clases', 'Los temas del curso por bloque, con las diapositivas y el apunte de cada clase.', 'Ver el roadmap')}
+    ${tarjetaPagina(pagina_('tpa'), 'Trabajo Práctico Anual', 'Las entregas con sus fechas, las consignas y el material para arrancar.', 'Ver el TPA')}
+    ${tarjetaPagina(pagina_('parciales'), 'Prepará los parciales', 'Clases y temas, parciales anteriores, errores frecuentes y ejercicios para autocorregirte.', 'Ir a los parciales')}
+    ${tarjetaPagina(pagina_('apuntes'), 'Apuntes teóricos', 'Documentos de la cátedra para estudiar cada tema con calma.', 'Ver los apuntes')}
   </div>
 </div></section>
 
@@ -200,6 +224,146 @@ ${encabezadoPagina('apuntes', 'Apuntes teóricos', 'Documentos de la cátedra pa
   <p class="nota-sec">${esc(apuntes.nota)}</p>
 </div></section>
 </main>`
+
+
+/* ---------- TPA ---------- */
+const DOW = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb']
+const diaSemana = (f) => DOW[new Date(Date.UTC(+f.slice(0, 4), +f.slice(5, 7) - 1, +f.slice(8, 10), 12)).getUTCDay()]
+
+function datosEntrega(titulo) {
+  const partes = titulo.replace(/^TPA\s*-\s*/i, '').split(' - ').map((x) => x.trim())
+  let nombre = partes[0]
+  let resto = partes.slice(1).join(' · ')
+  let clave = ''
+  const n = nombre.match(/Entrega\s+(\d+)/i)
+  if (n) clave = n[1]
+  else if (/Final/i.test(nombre)) clave = 'final'
+  else if (/^Entrega$/i.test(nombre) && resto) {
+    clave = 'diciembre'
+    nombre = `Entrega de ${resto.replace(/^Fecha\s+/i, '').toLowerCase()}`
+    resto = ''
+  }
+  const modo = /Individual/i.test(resto) ? 'Individual' : /Grupal/i.test(resto) ? 'Grupal' : /Coloquio/i.test(resto) ? 'Coloquios' : ''
+  const detalle = modo === 'Coloquios' ? 'Coloquios y reentregas' : ''
+  return { nombre, clave, modo, detalle }
+}
+
+function entrega(d, titulo, primeraFutura) {
+  const e = datosEntrega(titulo)
+  const c = tpa.consignas?.[e.clave] ?? {}
+  const chip = (txt, url) => (url ? `<a class="chip" href="${esc(url)}" target="_blank" rel="noopener">${esc(txt)} ↗</a>` : `<span class="chip off">${esc(txt)} a definir</span>`)
+  const estado = d.fecha < hoy ? 'pasada' : d.fecha === hoy ? 'hoy' : primeraFutura ? 'proxima' : ''
+  return `<li class="ent rv ${estado}" data-fecha="${esc(d.fecha)}">
+  <div class="ent-f"><span class="ent-n">${esc(fechaCorta(d))}</span><span class="ent-d">${d.texto ? '' : diaSemana(d.fecha)} ${esc(d.fecha.slice(0, 4))}</span></div>
+  <div class="ent-c"><h3>${esc(e.nombre)}${e.modo ? ` <span class="b b-tpa">${esc(e.modo)}</span>` : ''}</h3>${e.detalle ? `<p>${esc(e.detalle)}</p>` : ''}<div class="ent-l">${chip('Consigna', c.consigna)}${chip('Rúbrica', c.rubrica)}</div></div>
+  <span class="ent-e" aria-hidden="true"></span>
+</li>`
+}
+
+const paginaTpa = () => {
+  const lista = cron.dias.flatMap((d) => d.items.filter((it) => it.tipo === 'tpa').map((it) => [d, it.titulo]))
+  let marcada = false
+  const filas = lista.map(([d, t]) => {
+    const futura = d.fecha >= hoy && !marcada
+    if (futura) marcada = true
+    return entrega(d, t, futura)
+  })
+  return `<main id="main-tpa">
+${encabezadoPagina('tpa', 'Trabajo Práctico Anual', esc(tpa.intro))}
+<section class="sec" style="padding-top:0"><div class="wrap">
+  <div class="etapas">${tpa.etapas.map((e, i) => `<article class="etapa rv"><span class="num">${String(i + 1).padStart(2, '0')}</span><h3>${esc(e.titulo)}</h3><p>${esc(e.desc)}</p></article>`).join('')}</div>
+</div></section>
+<section class="sec band" id="entregas"><div class="wrap">
+  ${secHead('entregas', 'Entregas', 'Las fechas salen del cronograma, así que siempre están al día.')}
+  <ol class="entregas">${filas.join('')}</ol>
+</div></section>
+<section class="sec" id="material-tpa"><div class="wrap">
+  ${secHead('material', 'Consignas y material')}
+  <div class="sec-body mats">${tpa.material
+    .map((m) => (m.url
+      ? `<a class="mat rv" href="${esc(m.url)}" target="_blank" rel="noopener"><div><h3>${esc(m.titulo)}</h3><p>${esc(m.desc)}</p></div><span class="go">Abrir <span class="arr">↗</span></span></a>`
+      : `<div class="mat off rv"><div><h3>${esc(m.titulo)}</h3><p>${esc(m.desc)}</p></div><span class="go">a definir</span></div>`))
+    .join('')}</div>
+</div></section>
+</main>`
+}
+
+/* ---------- Parciales ---------- */
+const hayParcial = (re) => cron.dias.find((d) => d.items.some((it) => it.tipo === 'parcial' && re.test(it.titulo)))
+const diaParcial = { primero: hayParcial(/^Primer Parcial/i), segundo: hayParcial(/^Segundo Parcial/i) }
+const enRango = (id) => (d) =>
+  id === 'primero' ? d.fecha < diaParcial.primero.fecha : d.fecha > diaParcial.primero.fecha && d.fecha < diaParcial.segundo.fecha
+
+function clasesDelParcial(id) {
+  const dias = cron.dias.filter(enRango(id)).filter((d) => d.items.some((it) => it.tipo === 'clase' || it.tipo === 'preparcial'))
+  const filas = dias
+    .map((d) => {
+      const items = d.items.filter((it) => it.tipo === 'clase' || it.tipo === 'preparcial')
+      return `<li class="ag"><span class="ag-f">${esc(fechaCorta(d))}</span><ul>${items.map((it) => `<li><span class="b b-${it.tipo}">${esc(ETIQUETA[it.tipo])}</span><span>${esc(it.titulo)}</span></li>`).join('')}</ul></li>`
+    })
+    .join('')
+  const bloques = roadmap.bloques
+    .map((bl) => ({ bl, temas: bl.temas.filter((t) => t.dias.length && t.dias.every(enRango(id))) }))
+    .filter((x) => x.temas.length)
+    .map((x) => `<div class="tm"><h4>${esc(x.bl.titulo)}</h4><ul>${x.temas.map((t) => `<li>${esc(t.titulo)}</li>`).join('')}</ul></div>`)
+    .join('')
+  return { filas, bloques }
+}
+
+const etiquetasDe = (lista) => [...new Set(lista.map((x) => x.tag))]
+const filtros = (tags, grupo) =>
+  `<div class="filtros" data-filtros="${grupo}" hidden><button type="button" class="fl" data-tag="" aria-pressed="true">Todos</button>${tags.map((t) => `<button type="button" class="fl" data-tag="${esc(t)}" aria-pressed="false">${esc(t)}</button>`).join('')}</div>`
+const phead = (k, titulo, lede) => `<div class="ph"><p class="k">&gt; ${k}</p><h3>${titulo}</h3>${lede ? `<p class="ph-l">${lede}</p>` : ''}</div>`
+
+function panelParcial(p, abierto) {
+  const clases = clasesDelParcial(p.id)
+  const dia = diaParcial[p.id]
+  const recups = cron.dias.flatMap((d) => d.items.filter((it) => it.tipo === 'recuperatorio' && new RegExp(`del ${p.id === 'primero' ? 'Primer' : 'Segundo'} Parcial`, 'i').test(it.titulo)).map((it) => [d, it]))
+  const fechas = [[p.titulo, dia ? fechaCorta(dia) : 'a definir'], ...recups.map(([d, it]) => [it.titulo.replace(/\s+del (Primer|Segundo) Parcial/i, ''), fechaCorta(d)])]
+  const viejos = p.viejos
+    .map((v) => {
+      const chip = (t, u) => (u ? `<a class="chip" href="${esc(u)}" target="_blank" rel="noopener">${t} ↗</a>` : `<span class="chip off">${t} a definir</span>`)
+      return `<li class="vj"><div><h4>${esc(v.titulo)}</h4><p class="vj-f">${esc(v.fecha)}</p><p>${esc(v.desc)}</p></div><div class="vj-l">${chip('Enunciado', v.url)}${chip('Resolución', v.resolucion)}</div></li>`
+    })
+    .join('')
+  const errores = p.errores
+    .map((e) => `<article class="er" data-tag="${esc(e.tag)}"><span class="er-t">${esc(e.tag)}</span><p class="er-x"><b>Error</b>${esc(e.error)}</p><p class="er-ok"><b>Lo correcto</b>${esc(e.ok)}</p></article>`)
+    .join('')
+  const quiz = p.quiz
+    .map((q) => `<article class="q" data-ok="${q.ok}"><p class="q-tag">${esc(q.tag)}</p><h4>${esc(q.p)}</h4><div class="q-ops">${q.op.map((o, i) => `<button type="button" class="qo" data-i="${i}"${i === q.ok ? ' data-correcta' : ''}>${esc(o)}</button>`).join('')}</div><p class="q-expl">${esc(q.e)}</p></article>`)
+    .join('')
+  const tarjetas = p.tarjetas
+    .map((t) => `<button type="button" class="tj" data-tag="${esc(t.tag)}" aria-expanded="false"><span class="tj-t">${esc(t.tag)}</span><span class="tj-p">${esc(t.p)}</span><span class="tj-r">${esc(t.r)}</span><span class="tj-h">Tocá para ver la respuesta</span></button>`)
+    .join('')
+  return `<div class="pp" id="parcial-${p.id}" data-panel="${p.id}"${abierto ? '' : ''}>
+  <div class="pp-res">
+    <p>${esc(p.resumen)}</p>
+    <dl class="pp-fechas">${fechas.map(([t, f]) => `<div><dt>${esc(t)}</dt><dd>${esc(f)}</dd></div>`).join('')}</dl>
+    <p class="nota-sec" style="margin-top:14px">${esc(p.aprobacion)}</p>
+  </div>
+  <section class="pp-sec">${phead('clases', 'Clases y temas', 'Lo que se vio antes de este parcial, según el cronograma.')}
+    <div class="dos"><div><h4 class="mini">Clases</h4><ol class="agenda">${clases.filas}</ol></div><div><h4 class="mini">Temas</h4><div class="tms">${clases.bloques}</div></div></div></section>
+  <section class="pp-sec">${phead('habilidades', 'Qué tenés que poder hacer', 'Orientativo: sale de cómo fueron los parciales y pre-parciales anteriores.')}
+    <ul class="checks">${p.habilidades.map((h) => `<li>${esc(h)}</li>`).join('')}</ul></section>
+  <section class="pp-sec">${phead('anteriores', 'Parciales anteriores')}<ul class="viejos">${viejos}</ul></section>
+  <section class="pp-sec">${phead('errores', 'Errores frecuentes', 'Lo que más se repite en las correcciones, y cómo evitarlo.')}${filtros(etiquetasDe(p.errores), 'err')}<div class="errs">${errores}</div></section>
+  <section class="pp-sec">${phead('autocorreccion', 'Autocorrección', 'Elegí una opción y mirá la explicación. No se guarda nada.')}
+    <div class="quiz"><div class="quiz-bar"><span class="quiz-pt" aria-live="polite">Respondidas 0 de ${p.quiz.length} · Correctas 0</span><button type="button" class="link-btn quiz-reset" hidden>Volver a empezar</button></div>${quiz}<noscript><p class="nota-sec">Las explicaciones se muestran solas si no hay JavaScript.</p></noscript></div></section>
+  <section class="pp-sec">${phead('tarjetas', 'Tarjetas de repaso', 'Pregunta y respuesta corta. Tocá una tarjeta para darla vuelta.')}${filtros(etiquetasDe(p.tarjetas), 'tj')}<div class="tjs">${tarjetas}</div></section>
+</div>`
+}
+
+const paginaParciales = () => {
+  const ps = parcialesData.parciales
+  return `<main id="main-parciales">
+${encabezadoPagina('parciales', 'Prepará los parciales', 'Todo junto: clases y temas, parciales anteriores, errores frecuentes y ejercicios para autocorregirte.')}
+<section class="sec" style="padding-top:0"><div class="wrap">
+  <div class="tabs" role="tablist" aria-label="Parcial">${ps.map((p, i) => `<button type="button" role="tab" class="tab" data-tab="${p.id}" id="tab-${p.id}" aria-controls="parcial-${p.id}" aria-selected="${i === 0}"><b>${esc(p.corto)}</b><span>${esc(diaParcial[p.id] ? fechaCorta(diaParcial[p.id]) : '')}</span></button>`).join('')}</div>
+  <div class="panels">${ps.map((p, i) => panelParcial(p, i === 0)).join('')}</div>
+  <p class="nota-sec">${esc(parcialesData.nota)}</p>
+</div></section>
+</main>`
+}
 
 const miniatura = (opts) => svgEstatico({ ...opts, clase: 'm-mini' })
 const paginaMascota = () => `<main id="main-mascota">
@@ -247,7 +411,7 @@ const datosCalendario = `<script type="application/json" id="datos-calendario">$
 const CSS = `${fontFaces()}\n${read('src/styles.css')}`
 const JS = `${read('src/shared.js').replace(/^export /gm, '')}\n${read('src/mascota.js').replace(/^export /gm, '')}\n${read('src/main.js')}`
 const TITULO = 'Diseño de Sistemas de Información · K3003'
-const DESC = 'Página del curso K3003 de Diseño de Sistemas de Información (UTN FRBA): cronograma, roadmap, clases, apuntes y links.'
+const DESC = 'Página del curso K3003 de Diseño de Sistemas de Información (UTN FRBA): cronograma, roadmap, clases, TPA, parciales, apuntes y links.'
 
 const pagina = (cuerpo, { css, js, titulo = TITULO, base = '' }) => `<!doctype html>
 <html lang="es"><head>
@@ -266,6 +430,8 @@ if (single) {
   const cuerpo = `${cabecera('inicio')}
 <div class="pg" data-pg="inicio">${paginaInicio()}</div>
 <div class="pg" data-pg="roadmap" hidden>${paginaRoadmap()}</div>
+<div class="pg" data-pg="tpa" hidden>${paginaTpa()}</div>
+<div class="pg" data-pg="parciales" hidden>${paginaParciales()}</div>
 <div class="pg" data-pg="apuntes" hidden>${paginaApuntes()}</div>
 <div class="pg" data-pg="mascota" hidden>${paginaMascota()}</div>
 ${pie()}${bloqueMascota()}${datosCalendario}`
@@ -280,6 +446,7 @@ document.addEventListener('click',function(e){var a=e.target.closest&&e.target.c
   writeFileSync(join(out, 'main.js'), JS)
   writeFileSync(join(out, 'favicon.svg'), faviconSvg())
   writeFileSync(join(out, '.nojekyll'), '')
+  if (existsSync(join(ROOT, 'public'))) cpSync(join(ROOT, 'public'), out, { recursive: true }) // archivos propios (PDF de parciales, etc.)
   const css = '<link rel="stylesheet" href="/styles.css">'
   const js = '<script src="/main.js" defer></script>'
   const armar = (actual, main, dir, titulo, conMascota = true) => {
@@ -290,6 +457,8 @@ document.addEventListener('click',function(e){var a=e.target.closest&&e.target.c
   }
   armar('inicio', paginaInicio(), '', TITULO)
   armar('roadmap', paginaRoadmap(), 'roadmap', `Roadmap y clases · ${TITULO}`)
+  armar('tpa', paginaTpa(), 'tpa', `Trabajo Práctico Anual · ${TITULO}`)
+  armar('parciales', paginaParciales(), 'parciales', `Parciales · ${TITULO}`)
   armar('apuntes', paginaApuntes(), 'apuntes', `Apuntes teóricos · ${TITULO}`)
   armar('mascota', paginaMascota(), 'mascota', `Mascota (borrador) · ${TITULO}`, false)
   const cuatrocientosCuatro = `${cabecera('')}
