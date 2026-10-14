@@ -1,0 +1,63 @@
+{
+  "nota": "Temas según el cronograma 2026. El orden puede ajustarse en cada cursada.",
+  "bloques": [
+    {
+      "id": "intro",
+      "titulo": "Introducción: UML y recursos de diseño",
+      "corto": "Intro",
+      "evalua": null,
+      "temas": [
+        { "ts": ["T1"], "titulo": "UML: diagramas de dominio", "clase": "C01" },
+        { "ts": ["T2"], "titulo": "Recursos: diagramas de despliegue y de componentes" }
+      ]
+    },
+    {
+      "id": "capas",
+      "titulo": "Diseño por capas y atributos de calidad",
+      "corto": "Capas",
+      "evalua": "Pre-Parcial 1",
+      "temas": [
+        { "ts": ["T3", "T5"], "titulo": "Diseño por capas" },
+        { "ts": ["T4", "T6"], "titulo": "Atributos de calidad y arquitecturas de software" }
+      ]
+    },
+    {
+      "id": "sync",
+      "titulo": "Arquitecturas sincrónicas y modelo de dominio",
+      "corto": "Sincrónicas",
+      "evalua": "Pre-Parcial 2",
+      "temas": [
+        { "ts": ["T7", "T8"], "titulo": "Integración sincrónica de aplicaciones" },
+        { "ts": ["T9"], "titulo": "Persistencia relacional" },
+        { "ts": ["T10"], "titulo": "Mapeo objeto-relacional" },
+        { "ts": ["T11", "T15"], "titulo": "Arquitectura de microservicios" },
+        { "ts": ["T12"], "titulo": "Aplicaciones web y arquitectura Render Server" }
+      ]
+    },
+    {
+      "id": "async",
+      "titulo": "Arquitecturas asincrónicas y NoSQL",
+      "corto": "Asincrónicas",
+      "evalua": "Pre-Parcial 3",
+      "temas": [
+        { "ts": ["T13"], "titulo": "Integración asincrónica de aplicaciones" },
+        { "ts": ["T14"], "titulo": "Persistencia no relacional" },
+        { "ts": ["T16"], "titulo": "Observabilidad" },
+        { "ts": ["T17"], "titulo": "Seguridad" },
+        { "ts": ["T18"], "titulo": "Model Context Protocol" }
+      ]
+    },
+    {
+      "id": "patrones",
+      "titulo": "Principios y patrones de diseño",
+      "corto": "Patrones",
+      "evalua": "Pre-Parcial 4 y 5 · Refactor",
+      "temas": [
+        { "ts": ["T19"], "titulo": "Principios del diseño" },
+        { "ts": ["T20"], "titulo": "Patrones de comportamiento" },
+        { "ts": ["T21"], "titulo": "Patrones estructurales" },
+        { "ts": ["T22"], "titulo": "Patrones creacionales" }
+      ]
+    }
+  ]
+}

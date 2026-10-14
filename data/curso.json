@@ -1,0 +1,32 @@
+{
+  "nombre": "Diseño de Sistemas de Información",
+  "codigo": "K3003",
+  "turno": "Sábados por la mañana",
+  "facultad": "UTN FRBA",
+  "cronogramaId": "1I-NQ1ryXsrlQEA1aRfCUOqyCMQq7EcA_ABgMFGNag18",
+  "documentos": [
+    {
+      "id": "cronograma",
+      "etiqueta": "Google Sheets",
+      "titulo": "Cronograma",
+      "desc": "Fechas de cada clase, material de lectura previa, parcialitos, pre-parciales, parciales y entregas del Trabajo Práctico.",
+      "url": "https://docs.google.com/spreadsheets/d/1I-NQ1ryXsrlQEA1aRfCUOqyCMQq7EcA_ABgMFGNag18/edit?usp=sharing",
+      "accion": "Abrir el cronograma"
+    },
+    {
+      "id": "seguimiento",
+      "etiqueta": "Google Sheets · acceso restringido",
+      "titulo": "Planilla de seguimiento",
+      "desc": "Notas de parcialitos, pre-parciales, parciales y entregas del Trabajo Práctico, y condición en la cursada.",
+      "url": "",
+      "nota": "Se abre solo con el mail institucional de la UTN FRBA.",
+      "accion": "Abrir la planilla"
+    }
+  ],
+  "equipo": [
+    { "nombre": "Ing. Ezequiel J. Sosa", "rol": "Profesor a cargo" },
+    { "nombre": "Ing. Lucas J. Saclier", "rol": "Jefe de cátedra" },
+    { "nombre": "Ing. Ignacio Reyes", "rol": "Ayudante" },
+    { "nombre": "Santino L. Carrizo", "rol": "Ayudante" }
+  ]
+}

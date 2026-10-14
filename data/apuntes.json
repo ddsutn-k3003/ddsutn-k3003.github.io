@@ -1,0 +1,21 @@
+{
+  "apuntes": [
+    {
+      "titulo": "Diagramas de Secuencia",
+      "desc": "El diagrama de secuencia de UML como herramienta para modelar cómo colaboran las partes de un sistema para resolver un escenario.",
+      "bloque": "Intro",
+      "formato": "Google Docs",
+      "version": "Versión 1.0 · Septiembre 2026",
+      "url": "https://docs.google.com/document/d/1rlaVUFEVx_Ix-Tyy9K1pbD5dkc34WryXCoF8RfWWxgE/edit?usp=sharing"
+    },
+    {
+      "titulo": "Documentando Decisiones Arquitectónicas",
+      "desc": "Los diagramas de UML que se utilizan para comunicar la estructura de una arquitectura de software.",
+      "bloque": "Intro",
+      "formato": "Google Docs",
+      "version": "",
+      "url": "https://docs.google.com/document/d/1JDIkvk8UWWANVD_Y73d2PfAQJucjmb-qHOwq7uayyJY/edit?usp=sharing"
+    }
+  ],
+  "nota": "El apunte de cada clase está en la sección Clases, junto a sus diapositivas."
+}

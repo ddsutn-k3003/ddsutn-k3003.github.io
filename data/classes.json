@@ -1,0 +1,7 @@
+{
+  "generated": "2026-10-13T00:00:00.000Z",
+  "classes": [
+    { "id": "C01-uml", "num": "C01", "title": "UML y Diagramas de Dominio", "variantOf": null, "slides": "C01-uml/", "apunte": "C01-uml/apunte.pdf", "pdf": "C01-uml/diapositivas.pdf" },
+    { "id": "C01-uml-v2", "num": "C01", "title": "UML y Diagramas de Dominio", "variantOf": "C01-uml", "slides": "C01-uml-v2/", "apunte": "C01-uml-v2/apunte.pdf", "pdf": "C01-uml-v2/diapositivas.pdf" }
+  ]
+}
