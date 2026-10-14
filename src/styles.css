@@ -40,7 +40,7 @@ img, svg { max-width: 100%; }
 @keyframes cur { 50% { opacity: 0; } }
 
 /* Barra superior */
-.top { position: sticky; top: 0; z-index: 40; background: rgba(255, 255, 255, .96); border-bottom: 1px solid var(--linea); }
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 40; background: rgba(255, 255, 255, .96); border-bottom: 1px solid var(--linea); }
 .top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 60px; }
 .brand { display: flex; align-items: baseline; gap: 10px; text-decoration: none; flex: none; }
 .brand b { font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: -.01em; }
