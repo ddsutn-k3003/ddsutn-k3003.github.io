@@ -42,8 +42,6 @@
     }
   ],
   "mascota": {
-    "activa": false,
-    "imagen": "",
-    "ancho": 84
+    "activa": true
   }
 }

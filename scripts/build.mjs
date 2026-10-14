@@ -2,11 +2,11 @@
 //   npm run build                       -> sitio para GitHub Pages
 //   npm run single                      -> un solo archivo HTML (vista previa), en dist-single/
 //   CLASES_BASE=https://.../clases/     -> dónde está publicado el repo de clases (por defecto /clases/)
-import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { copyFileSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseCronograma } from './cronograma.mjs'
-import { compiSvg, faviconSvg } from './compi.mjs'
+import { COLORES, NOMBRES_EXPRESIONES, NOMBRES_FORMAS, faviconSvg, svgEstatico } from '../src/mascota.js'
 import { hoyISO, proximas, renderProximas } from '../src/shared.js'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
@@ -201,6 +201,27 @@ ${encabezadoPagina('apuntes', 'Apuntes teóricos', 'Documentos de la cátedra pa
 </div></section>
 </main>`
 
+const miniatura = (opts) => svgEstatico({ ...opts, clase: 'm-mini' })
+const paginaMascota = () => `<main id="main-mascota">
+${encabezadoPagina('mascota', 'Mascota (borrador)', 'Probá formas, expresiones y animaciones para elegir el estilo. Esta página no está en el menú.')}
+<section class="sec" style="padding-top:0"><div class="wrap lab">
+  <div class="lab-prev">
+    <div class="lab-stage" id="lab-stage"><div class="m-trail">${'<i></i>'.repeat(6)}</div><div class="m-demo" id="mascota-demo">${svgEstatico()}</div></div>
+    <div class="lab-acciones">
+      ${[['cargando', 'Cargando'], ['aviso', 'Aviso'], ['listo', 'Listo'], ['girar', 'Girar'], ['saltar', 'Saltar'], ['cometa', 'Cometa'], ['dormir', 'Dormir']].map(([a, t]) => `<button type="button" class="btn btn-s" data-accion="${a}">${t}</button>`).join('')}
+    </div>
+  </div>
+  <div class="lab-panel">
+    <h3>Forma</h3>
+    <div class="lab-opts">${Object.entries(NOMBRES_FORMAS).map(([k, t]) => `<button type="button" class="opt" data-forma="${k}" aria-pressed="false">${miniatura({ forma: k })}<span>${t}</span></button>`).join('')}</div>
+    <h3>Expresión</h3>
+    <div class="lab-opts">${Object.entries(NOMBRES_EXPRESIONES).map(([k, t]) => `<button type="button" class="opt" data-expr="${k}" aria-pressed="false">${miniatura({ expresion: k })}<span>${t}</span></button>`).join('')}</div>
+    <h3>Color</h3>
+    <div class="lab-colores">${Object.entries(COLORES).map(([k, hex]) => `<button type="button" class="sw" data-color="${k}" data-hex="${hex}" aria-pressed="false" aria-label="${k}" style="background:${hex}"></button>`).join('')}</div>
+  </div>
+</div></section>
+</main>`
+
 const pie = () => `<footer class="foot"><div class="wrap">
   <div>
     <p class="sig">&gt; ddsi --exit 0<span class="cur"></span></p>
@@ -210,26 +231,21 @@ const pie = () => `<footer class="foot"><div class="wrap">
   <ul class="team">${curso.equipo.map((p) => `<li>${esc(p.nombre)} <span>${esc(p.rol)}</span></li>`).join('')}</ul>
   <div class="foot-end">
     <span>Actualizado el ${new Date().toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-    <span><a href="https://github.com/ddsutn-k3003">GitHub de la cátedra</a>${mascota.activa ? '<span class="solo-desktop"> · <button class="link-btn" type="button" data-compi-toggle>Ocultar mascota</button></span>' : ''}</span>
+    <span><a href="https://github.com/ddsutn-k3003">GitHub de la cátedra</a>${mascota.activa ? `<span class="solo-desktop"> · <button class="link-btn" type="button" data-mascota-toggle>Ocultar mascota</button> · <a href="${single ? '#mascota' : '/mascota/'}">Mascota (borrador)</a></span>` : ''}</span>
   </div>
 </div></footer>`
 
-/* La mascota es opcional: con "activa": true en data/curso.json aparece Compi (dibujo propio)
-   o, si se indica "imagen", la que se ponga en public/ (PNG, WebP o SVG con fondo transparente). */
-const mascota = curso.mascota ?? { activa: false }
-const bloqueMascota = () => {
-  if (!mascota.activa) return ''
-  const ancho = mascota.ancho ?? 72
-  const dibujo = mascota.imagen
-    ? `<img class="compi-img" src="${single ? esc(mascota.imagen) : `/${esc(mascota.imagen)}`}" alt="" width="${ancho}">`
-    : compiSvg({ size: ancho })
-  return `<div class="compi" id="compi" data-mood="neutral" style="width:${ancho}px" aria-hidden="true"><div class="compi-bubble der"></div>${dibujo}</div>`
-}
+/* La mascota se puede apagar con "activa": false en data/curso.json. */
+const mascota = curso.mascota ?? { activa: true }
+const bloqueMascota = () =>
+  mascota.activa
+    ? `<div class="mascota" id="mascota" aria-hidden="true"><div class="m-bubble der"></div>${svgEstatico()}</div><div class="m-trails" aria-hidden="true">${'<i></i>'.repeat(6)}</div>`
+    : ''
 
 const datosCalendario = `<script type="application/json" id="datos-calendario">${JSON.stringify(cron.dias)}</script>`
 
 const CSS = `${fontFaces()}\n${read('src/styles.css')}`
-const JS = `${read('src/shared.js').replace(/^export /gm, '')}\n${read('src/main.js')}`
+const JS = `${read('src/shared.js').replace(/^export /gm, '')}\n${read('src/mascota.js').replace(/^export /gm, '')}\n${read('src/main.js')}`
 const TITULO = 'Diseño de Sistemas de Información · K3003'
 const DESC = 'Página del curso K3003 de Diseño de Sistemas de Información (UTN FRBA): cronograma, roadmap, clases, apuntes y links.'
 
@@ -251,23 +267,23 @@ if (single) {
 <div class="pg" data-pg="inicio">${paginaInicio()}</div>
 <div class="pg" data-pg="roadmap" hidden>${paginaRoadmap()}</div>
 <div class="pg" data-pg="apuntes" hidden>${paginaApuntes()}</div>
+<div class="pg" data-pg="mascota" hidden>${paginaMascota()}</div>
 ${pie()}${bloqueMascota()}${datosCalendario}`
-  const alternar = `(function(){var nav=document.querySelectorAll('.nav a, .brand, a[href^="#"]');function ir(h){var id=(h||'').replace('#','')||'inicio';var pg=id==='links'?'inicio':id;var ok=false;document.querySelectorAll('.pg').forEach(function(d){var on=d.getAttribute('data-pg')===pg;d.hidden=!on;if(on)ok=true});if(!ok)return;document.querySelectorAll('.nav a').forEach(function(a){a.setAttribute('aria-current',a.getAttribute('href')==='#'+id?'page':'false')});if(id==='links'){var el=document.getElementById('links');if(el)el.scrollIntoView()}else window.scrollTo(0,0)}
+  const alternar = `(function(){function localStorageOff(){try{return localStorage.getItem('mascota')==='off'}catch(e){return false}}var nav=document.querySelectorAll('.nav a, .brand, a[href^="#"]');function ir(h){var id=(h||'').replace('#','')||'inicio';var pg=id==='links'?'inicio':id;var ok=false;document.querySelectorAll('.pg').forEach(function(d){var on=d.getAttribute('data-pg')===pg;d.hidden=!on;if(on)ok=true});if(!ok)return;document.querySelectorAll('.nav a').forEach(function(a){a.setAttribute('aria-current',a.getAttribute('href')==='#'+id?'page':'false')});var fl=document.getElementById('mascota');if(fl&&!localStorageOff())fl.hidden=(pg==='mascota');if(id==='links'){var el=document.getElementById('links');if(el)el.scrollIntoView()}else window.scrollTo(0,0)}
 document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href^="#"]');if(!a)return;e.preventDefault();ir(a.getAttribute('href'))});ir(location.hash)})()`
   const frag = `<title>DDSI K3003</title>\n<style>${CSS}\nbody{margin:0}</style>\n${cuerpo}\n<script>${JS}</script>\n<script>${alternar}</script>`
   writeFileSync(join(out, 'index.html'), frag)
 } else {
   mkdirSync(join(out, 'fonts'), { recursive: true })
   for (const [pkg, , file] of FUENTES) copyFileSync(fuentePath(pkg, file), join(out, 'fonts', file))
-  if (mascota.imagen && existsSync(join(ROOT, 'public', mascota.imagen))) copyFileSync(join(ROOT, 'public', mascota.imagen), join(out, mascota.imagen))
-  writeFileSync(join(out, 'styles.css'), CSS)
+    writeFileSync(join(out, 'styles.css'), CSS)
   writeFileSync(join(out, 'main.js'), JS)
   writeFileSync(join(out, 'favicon.svg'), faviconSvg())
   writeFileSync(join(out, '.nojekyll'), '')
   const css = '<link rel="stylesheet" href="/styles.css">'
   const js = '<script src="/main.js" defer></script>'
-  const armar = (actual, main, dir, titulo) => {
-    const html = pagina(`${cabecera(actual)}${main}${pie()}${bloqueMascota()}${datosCalendario}`, { css, js, titulo })
+  const armar = (actual, main, dir, titulo, conMascota = true) => {
+    const html = pagina(`${cabecera(actual)}${main}${pie()}${conMascota ? bloqueMascota() : ''}${datosCalendario}`, { css, js, titulo })
     const destino = join(out, dir)
     mkdirSync(destino, { recursive: true })
     writeFileSync(join(destino, 'index.html'), html)
@@ -275,6 +291,7 @@ document.addEventListener('click',function(e){var a=e.target.closest&&e.target.c
   armar('inicio', paginaInicio(), '', TITULO)
   armar('roadmap', paginaRoadmap(), 'roadmap', `Roadmap y clases · ${TITULO}`)
   armar('apuntes', paginaApuntes(), 'apuntes', `Apuntes teóricos · ${TITULO}`)
+  armar('mascota', paginaMascota(), 'mascota', `Mascota (borrador) · ${TITULO}`, false)
   const cuatrocientosCuatro = `${cabecera('')}
 <main class="wrap centro" style="padding-block:72px;text-align:center">
   <p class="sig">&gt; error 404<span class="cur"></span></p>

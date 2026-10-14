@@ -1,216 +1,281 @@
-/* Comportamiento de la portada: sección activa, "lo que viene" con la fecha de hoy y Compi. */
+/* Comportamiento de la portada: "lo que viene" con la fecha de hoy y la mascota. */
 (function () {
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  var datos = []
 
   /* Lo que viene: se recalcula con la fecha de hoy del navegador. */
   try {
-    var dias = JSON.parse(document.getElementById('datos-calendario').textContent)
+    datos = JSON.parse(document.getElementById('datos-calendario').textContent)
     var hoy = hoyISO()
     var cont = document.getElementById('prox-lista')
-    if (cont) cont.innerHTML = renderProximas(proximas(dias, hoy, 4), hoy)
+    if (cont) cont.innerHTML = renderProximas(proximas(datos, hoy, 4), hoy)
   } catch (e) {}
 
-  /* Avisa cuándo entra cada sección en pantalla (la usa la mascota, si está activa). */
-  var actual = null
-  var secciones = Array.prototype.slice.call(document.querySelectorAll('main section[id]'))
-  if ('IntersectionObserver' in window && secciones.length) {
-    var io = new IntersectionObserver(
-      function (es) {
-        es.forEach(function (e) {
-          if (e.isIntersecting && e.target.id !== actual) {
-            actual = e.target.id
-            document.dispatchEvent(new CustomEvent('seccion', { detail: actual }))
-          }
+  var $ = function (s, r) { return (r || document).querySelector(s) }
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)) }
+  var ESPERA = function (ms) { return new Promise(function (ok) { setTimeout(ok, ms) }) }
+
+  /* Cometa: la mascota recorre el borde de un rectángulo dejando una estela. */
+  function cometa(m, o) {
+    var t0 = Math.atan2((o.y0 - o.cy) / o.b, (o.x0 - o.cx) / o.a)
+    var dur = o.dur || 3200
+    var hist = []
+    var ini = null
+    var sg = function (x) { return x < 0 ? -1 : 1 }
+    var pt = function (t) {
+      var c = Math.cos(t)
+      var s = Math.sin(t)
+      return [o.cx + o.a * sg(c) * Math.pow(Math.abs(c), 1 / 3), o.cy + o.b * sg(s) * Math.pow(Math.abs(s), 1 / 3)]
+    }
+    m.ponerExpresion('feliz')
+    return new Promise(function (ok) {
+      function frame(ahora) {
+        if (ini === null) ini = ahora
+        var p = Math.min(1, (ahora - ini) / dur)
+        var e = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2
+        var t = t0 + e * Math.PI * 2
+        var q = pt(t)
+        var n = pt(t + 0.04)
+        var mezcla = Math.min(1, p / 0.1)
+        var x = o.x0 + (q[0] - o.x0) * mezcla
+        var y = o.y0 + (q[1] - o.y0) * mezcla
+        var ang = (Math.atan2(n[1] - q[1], n[0] - q[0]) * 180) / Math.PI
+        o.mover(x, y)
+        m.todo.style.transformOrigin = '50px 50px'
+        m.todo.style.transform = 'rotate(' + ang.toFixed(1) + 'deg) scale(1.5,.78)'
+        hist.push([x, y])
+        if (hist.length > 60) hist.shift()
+        o.estela.forEach(function (el, i) {
+          var h = hist[hist.length - 1 - (i + 1) * 4] || hist[0]
+          var k = 1 - (i + 1) / (o.estela.length + 1)
+          el.style.transform = 'translate(' + (h[0] + o.mitad) + 'px,' + (h[1] + o.mitad) + 'px) scale(' + k.toFixed(2) + ')'
+          el.style.opacity = p < 1 ? (0.55 * k).toFixed(2) : 0
         })
-      },
-      { rootMargin: '-40% 0px -55% 0px' },
-    )
-    secciones.forEach(function (s) { io.observe(s) })
+        if (p < 1) requestAnimationFrame(frame)
+        else {
+          m.todo.style.transform = ''
+          o.estela.forEach(function (el) { el.style.opacity = 0 })
+          m.ponerExpresion('atenta')
+          ok()
+        }
+      }
+      requestAnimationFrame(frame)
+    })
   }
 
-  /* Compi */
-  var el = document.getElementById('compi')
-  if (!el) return
-  var svg = el.querySelector('svg')
-  var burbuja = el.querySelector('.compi-bubble')
-  var guardado = null
-  try { guardado = localStorage.getItem('compi') } catch (e) {}
-  var botones = document.querySelectorAll('[data-compi-toggle]')
-  function pintarBoton() {
-    botones.forEach(function (b) { b.textContent = el.classList.contains('oculto') ? 'Mostrar a Compi' : 'Ocultar a Compi' })
+  /* ---------- Laboratorio (página /mascota/) ---------- */
+  var demo = $('#mascota-demo')
+  if (demo) {
+    var md = new Mascota($('svg', demo), { reducir: reduce })
+    var forma = 'guijarro'
+    var expr = 'atenta'
+    function marcar(attr, val) {
+      $$('[' + attr + ']').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute(attr) === val ? 'true' : 'false') })
+    }
+    marcar('data-forma', forma)
+    marcar('data-expr', expr)
+    marcar('data-color', 'rojo')
+    var acciones = {
+      cargando: function () { return md.cargando(2200) },
+      aviso: function () { return md.aviso() },
+      listo: function () { return md.listo() },
+      girar: function () { md.girar(); return Promise.resolve() },
+      saltar: function () { md.saltar(2); return Promise.resolve() },
+      dormir: function () { md.ponerExpresion('dormida'); marcar('data-expr', 'dormida'); return Promise.resolve() },
+      cometa: function () {
+        var caja = $('.lab-stage').getBoundingClientRect()
+        var r = demo.getBoundingClientRect()
+        var mitad = r.width / 2
+        var estela = $$('.m-trail i', $('.lab-stage'))
+        return cometa(md, {
+          cx: 0, cy: 0, a: caja.width / 2 - mitad - 24, b: caja.height / 2 - mitad - 24,
+          x0: 0, y0: 0, mitad: 0, estela: estela, dur: 3400,
+          mover: function (x, y) { demo.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px)' },
+        }).then(function () { demo.style.transform = '' })
+      },
+    }
+    $$('[data-accion]').forEach(function (b) { b.addEventListener('click', function () { var f = acciones[b.getAttribute('data-accion')]; if (f) f() }) })
+    $$('[data-forma]').forEach(function (b) { b.addEventListener('click', function () { forma = b.getAttribute('data-forma'); md.ponerForma(forma); marcar('data-forma', forma) }) })
+    $$('[data-expr]').forEach(function (b) { b.addEventListener('click', function () { expr = b.getAttribute('data-expr'); md.ponerExpresion(expr); marcar('data-expr', expr) }) })
+    $$('[data-color]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        demo.style.setProperty('--m-color', b.getAttribute('data-hex'))
+        $$('.m-b', demo).forEach(function (p) { p.setAttribute('fill', b.getAttribute('data-hex')) })
+        marcar('data-color', b.getAttribute('data-color'))
+      })
+    })
+    setInterval(function () { md.parpadear() }, 4200)
+    document.addEventListener('pointermove', function (e) {
+      var r = demo.getBoundingClientRect()
+      md.mirar((e.clientX - (r.left + r.width / 2)) / 300, (e.clientY - (r.top + r.height / 2)) / 300)
+    }, { passive: true })
+    demo.addEventListener('click', function () { md.girar() })
   }
-  if (guardado === 'off') el.classList.add('oculto')
+
+  /* ---------- Mascota flotante ---------- */
+  var el = document.getElementById('mascota')
+  if (!el) return
+  var svg = $('svg', el)
+  var burbuja = $('.m-bubble', el)
+  var estela = $$('.m-trail i')
+  var m = new Mascota(svg, { reducir: reduce })
+  var TAM = el.offsetWidth || 52
+  var pos = { x: 0, y: 0, rincon: 'der' }
+  var s = { dormida: false, ocupada: false, ultima: Date.now(), tBurbuja: null, ultimaCometa: Date.now() }
+
+  var guardado = null
+  try { guardado = localStorage.getItem('mascota') } catch (e) {}
+  var botones = $$('[data-mascota-toggle]')
+  function pintarBoton() { botones.forEach(function (b) { b.textContent = el.hidden ? 'Mostrar mascota' : 'Ocultar mascota' }) }
+  if (guardado === 'off') el.hidden = true
   pintarBoton()
   botones.forEach(function (b) {
     b.addEventListener('click', function () {
-      var off = el.classList.toggle('oculto')
-      try { localStorage.setItem('compi', off ? 'off' : 'on') } catch (e) {}
+      el.hidden = !el.hidden
+      try { localStorage.setItem('mascota', el.hidden ? 'off' : 'on') } catch (e) {}
       pintarBoton()
     })
   })
 
-  var W = el.offsetWidth || 72
-  var estado = { x: null, quieto: false, durmiendo: false, ultimaAccion: Date.now() }
-  var temporizador = null
-  var tBurbuja = null
-
-  function mood(m) { el.setAttribute('data-mood', m) }
-  function pulso(clase, ms) {
-    el.classList.remove(clase)
-    void el.offsetWidth
-    el.classList.add(clase)
-    setTimeout(function () { el.classList.remove(clase) }, ms)
-  }
-
   var TIPS = [
-    'Si algo no cierra, preguntá. Para eso estamos.',
-    'Primero pensá el diseño, después escribí el código.',
+    'Si algo no cierra, preguntá.',
+    'Primero el diseño, después el código.',
     'Cuando dudes, dibujalo.',
-    'Compilar no es lo mismo que estar bien diseñado.',
-    'Releé el enunciado antes de empezar. Dos veces.',
+    'Compilar no es estar bien diseñado.',
+    'Releé el enunciado antes de empezar.',
     'Un diagrama claro vale más que uno completo.',
-    'Revisá el cronograma: a veces hay parcialito.',
+    'Mirá el cronograma: a veces hay parcialito.',
   ]
-  var POR_SECCION = {
-    documentos: ['Empezá por acá: el cronograma tiene las fechas.', 'wink'],
-    roadmap: ['Este es el mapa de la materia. Andá de a un tema.', 'code'],
-    clases: ['Las diapositivas se recorren con las flechas.', 'happy'],
-    apuntes: ['Los apuntes son para estudiar con calma.', 'code'],
-    links: ['Si falta algún link útil, avisanos.', 'wink'],
-  }
-  var vistas = {}
 
-  function decir(texto, m, ms) {
-    if (el.classList.contains('oculto') || !burbuja) return
-    var izq = estado.x !== null ? estado.x + W / 2 < window.innerWidth / 2 : false
-    burbuja.className = 'compi-bubble ' + (izq ? 'izq' : 'der')
+  function decir(texto, ms) {
+    if (el.hidden || !burbuja) return
+    burbuja.className = 'm-bubble ' + (pos.rincon === 'izq' ? 'izq' : 'der')
     burbuja.textContent = texto
     void burbuja.offsetWidth
     burbuja.classList.add('on')
-    if (m) mood(m)
-    clearTimeout(tBurbuja)
-    tBurbuja = setTimeout(function () {
-      burbuja.classList.remove('on')
-      mood('neutral')
-    }, ms || 4600)
+    clearTimeout(s.tBurbuja)
+    s.tBurbuja = setTimeout(function () { burbuja.classList.remove('on') }, ms || 4200)
   }
 
-  /* Espacio libre a los costados del contenido: ahí es donde Compi puede pasear sin tapar texto. */
-  function bordes() {
-    var w = window.innerWidth
-    var libre = (w - 1120) / 2
-    if (libre < 100 || reduce) return null
-    return {
-      izq: [10, libre - W - 14],
-      der: [w - libre + 14, w - W - 10],
-    }
+  function libre() { return (window.innerWidth - 1120) / 2 }
+  function hayLugar() { return libre() >= TAM + 36 && !reduce }
+  function xRincon(r) { return r === 'izq' ? 16 : window.innerWidth - TAM - 16 }
+  function yBase() { return window.innerHeight - TAM - 8 }
+  function colocar(x, y, ms) {
+    pos.x = x; pos.y = y
+    el.style.transition = ms ? 'transform ' + ms + 'ms linear' : 'none'
+    el.style.transform = 'translate(' + Math.round(x) + 'px,' + Math.round(y) + 'px)'
+  }
+  function ocupar(f) {
+    if (s.ocupada || s.dormida || el.hidden || document.hidden) return Promise.resolve()
+    s.ocupada = true
+    return Promise.resolve(f()).then(function () { s.ocupada = false }, function () { s.ocupada = false })
   }
 
-  function posicionar(x, ms) {
-    estado.x = x
-    el.style.transition = ms ? 'transform ' + ms + 'ms cubic-bezier(.45,.05,.55,.95)' : 'none'
-    el.style.transform = 'translateX(' + Math.round(x) + 'px)'
+  var acciones2 = {
+    mirar: function () {
+      var d = Math.random() < 0.5 ? -1 : 1
+      m.mirar(d, 0)
+      return ESPERA(1200).then(function () { m.mirar(0, 0) })
+    },
+    pensar: function () { return m.cargando(1700) },
+    aviso: function () { decir(TIPS[Math.floor(Math.random() * TIPS.length)], 4200); return m.aviso(1700) },
+    girar: function () { m.girar(); return ESPERA(750) },
+    saltar: function () { m.saltar(2); return ESPERA(900) },
+    pasear: function () {
+      if (!hayLugar()) return acciones2.saltar()
+      var nuevo = pos.rincon === 'izq' ? 'der' : 'izq'
+      var destino = xRincon(nuevo)
+      var n = Math.max(2, Math.round(Math.abs(destino - pos.x) / 140))
+      var ms = n * 440
+      m.saltar(n)
+      colocar(destino, pos.y, ms)
+      pos.rincon = nuevo
+      return ESPERA(ms + 40)
+    },
+    cometa: function () {
+      if (reduce || window.innerWidth < 900) return acciones2.girar()
+      var W = window.innerWidth
+      var H = window.innerHeight
+      var mitad = TAM / 2
+      s.ultimaCometa = Date.now()
+      var x0 = pos.x
+      var y0 = pos.y
+      el.style.transition = 'none'
+      return cometa(m, {
+        cx: W / 2 - mitad, cy: H / 2 - mitad, a: W / 2 - mitad - 14, b: H / 2 - mitad - 8,
+        x0: x0, y0: y0, mitad: mitad, estela: estela, dur: 3600,
+        mover: function (x, y) { el.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px)' },
+      }).then(function () { colocar(x0, y0, 0) })
+    },
   }
 
-  function iniciar() {
-    el.style.left = '0'
-    el.style.right = 'auto'
-    var b = bordes()
-    posicionar(b ? b.der[1] : window.innerWidth - W - 12, 0)
-  }
-
-  function pasear() {
-    var b = bordes()
-    if (!b || estado.durmiendo || document.hidden || el.classList.contains('oculto')) return
-    var dest
+  function elegir() {
     var r = Math.random()
-    var lado = r < 0.42 ? 'izq' : r < 0.84 ? 'der' : Math.random() < 0.5 ? 'izq' : 'der'
-    var rango = b[lado]
-    // En las esquinas con más frecuencia que en el medio del margen.
-    dest = Math.random() < 0.6 ? (lado === 'izq' ? rango[0] : rango[1]) : rango[0] + Math.random() * (rango[1] - rango[0])
-    var dist = Math.abs(dest - estado.x)
-    if (dist < 24) return
-    var ms = Math.max(700, (dist / 170) * 1000)
-    el.style.setProperty('--lean', dest > estado.x ? '4deg' : '-4deg')
-    el.style.setProperty('--lx', dest > estado.x ? '3px' : '-3px')
-    el.classList.add('rueda')
-    posicionar(dest, ms)
-    setTimeout(function () {
-      el.classList.remove('rueda')
-      el.style.setProperty('--lean', '0deg')
-      el.style.setProperty('--lx', '0px')
-    }, ms + 60)
-  }
-
-  function accion() {
-    if (document.hidden || el.classList.contains('oculto')) return
-    var ocioso = Date.now() - estado.ultimaAccion
-    if (ocioso > 50000 && !estado.durmiendo && !reduce) {
-      estado.durmiendo = true
-      mood('sleepy')
-      return
-    }
-    if (estado.durmiendo) return
-    var r = Math.random()
-    if (r < 0.5) pasear()
-    else if (r < 0.7 && !reduce) pulso('saluda', 1600)
-    else if (r < 0.85 && !reduce) pulso('salta', 650)
-    else { mood('wink'); setTimeout(function () { mood('neutral') }, 1100) }
+    if (!reduce && Date.now() - s.ultimaCometa > 70000 && r < 0.12) return 'cometa'
+    if (r < 0.3) return 'mirar'
+    if (r < 0.46) return 'pensar'
+    if (r < 0.6) return 'aviso'
+    if (r < 0.72) return 'girar'
+    if (r < 0.82) return 'saltar'
+    return 'pasear'
   }
 
   function ciclo() {
-    temporizador = setTimeout(function () { accion(); ciclo() }, 7000 + Math.random() * 9000)
+    setTimeout(function () {
+      if (Date.now() - s.ultima > 60000 && !s.dormida && !reduce) {
+        s.dormida = true
+        m.ponerExpresion('dormida')
+      } else if (!s.dormida) ocupar(acciones2[elegir()])
+      ciclo()
+    }, 6500 + Math.random() * 6500)
   }
 
   function despertar() {
-    estado.ultimaAccion = Date.now()
-    if (estado.durmiendo) {
-      estado.durmiendo = false
-      mood('wow')
-      setTimeout(function () { mood('neutral') }, 900)
+    s.ultima = Date.now()
+    if (s.dormida) {
+      s.dormida = false
+      m.ponerExpresion('sorprendida')
+      setTimeout(function () { m.ponerExpresion('atenta') }, 900)
     }
   }
   ;['pointerdown', 'keydown', 'scroll'].forEach(function (t) { window.addEventListener(t, despertar, { passive: true }) })
 
-  /* Los ojos siguen al mouse (solo horizontal y apenas). */
   var raf = 0
   window.addEventListener('pointermove', function (e) {
     despertar()
-    if (reduce || el.classList.contains('rueda') || raf) return
+    if (reduce || raf || s.ocupada) return
     raf = requestAnimationFrame(function () {
       raf = 0
-      var cx = (estado.x || 0) + W / 2
-      var d = Math.max(-1, Math.min(1, (e.clientX - cx) / 400))
-      var dy = Math.max(-1, Math.min(1, (e.clientY - (window.innerHeight - 70)) / 500))
-      el.style.setProperty('--lx', (d * 3.2).toFixed(1) + 'px')
-      el.style.setProperty('--ly', (dy * 2).toFixed(1) + 'px')
+      m.mirar((e.clientX - (pos.x + TAM / 2)) / 450, (e.clientY - (pos.y + TAM / 2)) / 450)
     })
   }, { passive: true })
 
   svg.addEventListener('click', function () {
     despertar()
-    if (!reduce) pulso('salta', 650)
-    decir(TIPS[Math.floor(Math.random() * TIPS.length)], 'happy')
-  })
-  svg.addEventListener('mouseenter', function () { if (!reduce && !estado.durmiendo) pulso('saluda', 1600) })
-
-  /* Un comentario al entrar a cada sección, una sola vez y sin apurarse. */
-  var espera = null
-  document.addEventListener('seccion', function (e) {
-    var d = POR_SECCION[e.detail]
-    clearTimeout(espera)
-    if (!d || vistas[e.detail] || reduce) return
-    espera = setTimeout(function () {
-      if (actual !== e.detail) return
-      vistas[e.detail] = true
-      decir(d[0], d[1])
-    }, 1100)
+    if (s.ocupada) return
+    s.ocupada = true
+    m.girar()
+    decir(TIPS[Math.floor(Math.random() * TIPS.length)], 4200)
+    m.listo(900).then(function () { s.ocupada = false })
   })
 
   window.addEventListener('resize', function () {
-    var b = bordes()
-    posicionar(b ? Math.min(Math.max(estado.x || 0, b.izq[0]), b.der[1]) : window.innerWidth - W - 12, 0)
+    if (!hayLugar()) pos.rincon = 'der'
+    colocar(xRincon(pos.rincon), yBase(), 0)
   })
-  iniciar()
-  if (!reduce) ciclo()
+
+  /* Arranque: aparece como puntos de carga, se vuelve mancha y, si hoy hay algo en el cronograma, avisa. */
+  colocar(xRincon('der'), yBase(), 0)
+  m.irA('puntos', 0)
+  var anuncios = { clase: 'Hoy hay clase.', preparcial: 'Hoy hay pre-parcial.', parcial: 'Hoy hay parcial.', recuperatorio: 'Hoy hay recuperatorio.', tpa: 'Hoy es entrega del TPA.' }
+  setTimeout(function () {
+    var hoyDia = datos.filter(function (d) { return d.fecha === hoyISO() })[0]
+    var hay = hoyDia && anuncios[hoyDia.tipo]
+    if (hay && !reduce) {
+      s.ocupada = true
+      m.irA('admiracion', 420).then(function () { decir(hay, 5000); m.saltar(); return ESPERA(1800) }).then(function () { return m.irA('mancha') }).then(function () { s.ocupada = false })
+    } else m.irA('mancha', reduce ? 0 : 520)
+  }, reduce ? 0 : 1100)
+  if (!reduce) { ciclo(); setInterval(function () { if (!s.ocupada && !s.dormida) m.parpadear() }, 4300) }
 })()
