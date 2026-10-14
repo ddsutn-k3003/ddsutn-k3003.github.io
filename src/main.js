@@ -10,20 +10,18 @@
     if (cont) cont.innerHTML = renderProximas(proximas(dias, hoy, 4), hoy)
   } catch (e) {}
 
-  /* Sección activa en la barra superior. */
-  var links = Array.prototype.slice.call(document.querySelectorAll('.nav a'))
-  var secciones = links
-    .map(function (a) { return document.querySelector(a.getAttribute('href')) })
-    .filter(Boolean)
+  /* Avisa cuándo entra cada sección en pantalla (la usa la mascota, si está activa). */
   var actual = null
-  function marcar(id) {
-    links.forEach(function (a) { a.setAttribute('aria-current', a.getAttribute('href') === '#' + id ? 'true' : 'false') })
-    if (id !== actual) { actual = id; document.dispatchEvent(new CustomEvent('seccion', { detail: id })) }
-  }
-  if ('IntersectionObserver' in window) {
+  var secciones = Array.prototype.slice.call(document.querySelectorAll('main section[id]'))
+  if ('IntersectionObserver' in window && secciones.length) {
     var io = new IntersectionObserver(
       function (es) {
-        es.forEach(function (e) { if (e.isIntersecting) marcar(e.target.id) })
+        es.forEach(function (e) {
+          if (e.isIntersecting && e.target.id !== actual) {
+            actual = e.target.id
+            document.dispatchEvent(new CustomEvent('seccion', { detail: actual }))
+          }
+        })
       },
       { rootMargin: '-40% 0px -55% 0px' },
     )
@@ -51,7 +49,7 @@
     })
   })
 
-  var W = 72
+  var W = el.offsetWidth || 72
   var estado = { x: null, quieto: false, durmiendo: false, ultimaAccion: Date.now() }
   var temporizador = null
   var tBurbuja = null

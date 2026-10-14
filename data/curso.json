@@ -24,9 +24,26 @@
     }
   ],
   "equipo": [
-    { "nombre": "Ing. Ezequiel J. Sosa", "rol": "Profesor a cargo" },
-    { "nombre": "Ing. Lucas J. Saclier", "rol": "Jefe de cátedra" },
-    { "nombre": "Ing. Ignacio Reyes", "rol": "Ayudante" },
-    { "nombre": "Santino L. Carrizo", "rol": "Ayudante" }
-  ]
+    {
+      "nombre": "Ing. Ezequiel J. Sosa",
+      "rol": "Profesor a cargo"
+    },
+    {
+      "nombre": "Ing. Lucas J. Saclier",
+      "rol": "Jefe de cátedra"
+    },
+    {
+      "nombre": "Ing. Ignacio Reyes",
+      "rol": "Ayudante"
+    },
+    {
+      "nombre": "Santino L. Carrizo",
+      "rol": "Ayudante"
+    }
+  ],
+  "mascota": {
+    "activa": false,
+    "imagen": "",
+    "ancho": 84
+  }
 }

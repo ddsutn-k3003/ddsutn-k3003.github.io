@@ -2,7 +2,7 @@
 //   npm run build                       -> sitio para GitHub Pages
 //   npm run single                      -> un solo archivo HTML (vista previa), en dist-single/
 //   CLASES_BASE=https://.../clases/     -> dónde está publicado el repo de clases (por defecto /clases/)
-import { copyFileSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseCronograma } from './cronograma.mjs'
@@ -118,22 +118,29 @@ const secHead = (k, titulo, lede) =>
 const numClases = [...new Set(clases.map((c) => c.num))].sort()
 const cronUrl = curso.documentos[0].url
 
-/* ---------- Página ---------- */
-const NAV = [
-  ['documentos', 'Documentos'],
-  ['roadmap', 'Roadmap'],
-  ['clases', 'Clases'],
-  ['apuntes', 'Apuntes'],
-  ['links', 'Links'],
+/* ---------- Páginas ---------- */
+// Tres páginas: inicio (cronograma, documentos y links), roadmap y clases, y apuntes.
+// En la vista previa de un solo archivo las tres conviven y se alternan con el hash.
+const PAGINAS = [
+  { id: 'inicio', href: '/', t: 'Inicio' },
+  { id: 'roadmap', href: '/roadmap/', t: 'Roadmap y clases' },
+  { id: 'apuntes', href: '/apuntes/', t: 'Apuntes' },
+  { id: 'links', href: '/#links', t: 'Links' },
 ]
+const hrefDe = (p) => (single ? `#${p.id}` : p.href)
 
-const body = `
-<header class="top"><div class="wrap">
-  <a class="brand" href="#inicio" aria-label="Inicio"><b>DDSI</b><span>k3003</span></a>
-  <nav class="nav" aria-label="Secciones">${NAV.map(([id, t]) => `<a href="#${id}" aria-current="false">${t}</a>`).join('')}</nav>
-</div></header>
+const cabecera = (actual) => `<header class="top"><div class="wrap">
+  <a class="brand" href="${single ? '#inicio' : '/'}" aria-label="Inicio"><b>DDSI</b><span>k3003</span></a>
+  <nav class="nav" aria-label="Secciones">${PAGINAS.map((p) => `<a href="${hrefDe(p)}" aria-current="${p.id === actual ? 'page' : 'false'}">${p.t}</a>`).join('')}</nav>
+</div></header>`
 
-<main id="inicio">
+const encabezadoPagina = (k, titulo, lede) =>
+  `<section class="pagehead"><div class="wrap"><p class="k">&gt; ${k}<span class="cur"></span></p><h1 class="h1s">${titulo}</h1>${lede ? `<p class="lede">${lede}</p>` : ''}</div></section>`
+
+const tarjetaPagina = (p, titulo, desc, cta) =>
+  `<a class="doc rv" href="${hrefDe(p)}"><p class="tag">Sección del sitio</p><h3>${titulo}</h3><p>${desc}</p><span class="btn btn-s">${cta} <span class="arr">→</span></span></a>`
+
+const paginaInicio = () => `<main id="main-inicio">
 <section class="hero"><div class="wrap">
   <div>
     <p class="sig">&gt; ddsi --curso k3003<span class="cur"></span></p>
@@ -142,7 +149,7 @@ const body = `
     <p class="meta">${esc(curso.codigo)} · ${esc(curso.turno)} · ${esc(curso.facultad)}</p>
     <div class="cta">
       <a class="btn btn-p" href="${esc(cronUrl)}" target="_blank" rel="noopener">Abrir el cronograma <span class="arr">↗</span></a>
-      <a class="btn btn-s" href="#clases">Ir a las clases</a>
+      <a class="btn btn-s" href="${hrefDe(PAGINAS[1])}">Ver roadmap y clases</a>
     </div>
   </div>
   <aside class="prox" aria-label="Próximas fechas">
@@ -156,13 +163,27 @@ const body = `
   <div class="sec-body docs">${curso.documentos.map(documento).join('')}</div>
 </div></section>
 
-<section class="sec band" id="roadmap"><div class="wrap">
-  ${secHead('roadmap', 'Roadmap de la materia', 'Los temas del curso agrupados por bloque, con la clase de cada tema cuando ya está disponible.')}
-  <div class="sec-body road">${roadmap.bloques.map((b, i) => bloque(b, i + 1)).join('')}</div>
-  <p class="road-nota">${esc(roadmap.nota)}</p>
+<section class="sec band" id="material"><div class="wrap">
+  ${secHead('material', 'Para estudiar')}
+  <div class="sec-body docs">
+    ${tarjetaPagina(PAGINAS[1], 'Roadmap y clases', 'Los temas del curso por bloque, con las diapositivas y el apunte de cada clase.', 'Ver el roadmap')}
+    ${tarjetaPagina(PAGINAS[2], 'Apuntes teóricos', 'Documentos de la cátedra para estudiar cada tema con calma.', 'Ver los apuntes')}
+  </div>
 </div></section>
 
-<section class="sec" id="clases"><div class="wrap">
+<section class="sec" id="links"><div class="wrap">
+  ${secHead('links', 'Links de utilidad')}
+  <div class="sec-body grupos">${links.grupos.map((g) => `<div class="grupo rv"><h3>${esc(g.titulo)}</h3><ul>${g.links.map(enlace).join('')}</ul></div>`).join('')}</div>
+</div></section>
+</main>`
+
+const paginaRoadmap = () => `<main id="main-roadmap">
+${encabezadoPagina('roadmap', 'Roadmap y clases', 'Los temas del curso agrupados por bloque y, más abajo, las clases ya disponibles.')}
+<section class="sec" id="roadmap" style="padding-top:0"><div class="wrap">
+  <div class="road">${roadmap.bloques.map((b, i) => bloque(b, i + 1)).join('')}</div>
+  <p class="road-nota">${esc(roadmap.nota)}</p>
+</div></section>
+<section class="sec band" id="clases"><div class="wrap">
   ${secHead('clases', 'Clases', 'Diapositivas y apunte de cada clase, en el orden en que se dictan.')}
   <div class="sec-body cards">
     ${numClases.map(tarjetaClase).join('')}
@@ -170,20 +191,17 @@ const body = `
   </div>
   <p class="mas"><a href="${esc(clasesBase)}">Ver el índice completo de clases →</a></p>
 </div></section>
+</main>`
 
-<section class="sec band" id="apuntes"><div class="wrap">
-  ${secHead('apuntes', 'Apuntes teóricos', 'Documentos de la cátedra para estudiar cada tema con calma.')}
-  <div class="sec-body apuntes">${apuntes.apuntes.map(apunte).join('')}</div>
+const paginaApuntes = () => `<main id="main-apuntes">
+${encabezadoPagina('apuntes', 'Apuntes teóricos', 'Documentos de la cátedra para estudiar cada tema con calma.')}
+<section class="sec" style="padding-top:0"><div class="wrap">
+  <div class="apuntes">${apuntes.apuntes.map(apunte).join('')}</div>
   <p class="nota-sec">${esc(apuntes.nota)}</p>
 </div></section>
+</main>`
 
-<section class="sec" id="links"><div class="wrap">
-  ${secHead('links', 'Links de utilidad')}
-  <div class="sec-body grupos">${links.grupos.map((g) => `<div class="grupo rv"><h3>${esc(g.titulo)}</h3><ul>${g.links.map(enlace).join('')}</ul></div>`).join('')}</div>
-</div></section>
-</main>
-
-<footer class="foot"><div class="wrap">
+const pie = () => `<footer class="foot"><div class="wrap">
   <div>
     <p class="sig">&gt; ddsi --exit 0<span class="cur"></span></p>
     <h2>Cátedra de Diseño de Sistemas de Información</h2>
@@ -192,29 +210,36 @@ const body = `
   <ul class="team">${curso.equipo.map((p) => `<li>${esc(p.nombre)} <span>${esc(p.rol)}</span></li>`).join('')}</ul>
   <div class="foot-end">
     <span>Actualizado el ${new Date().toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-    <span><a href="https://github.com/ddsutn-k3003">GitHub de la cátedra</a><span class="solo-desktop"> · <button class="link-btn" type="button" data-compi-toggle>Ocultar a Compi</button></span></span>
+    <span><a href="https://github.com/ddsutn-k3003">GitHub de la cátedra</a>${mascota.activa ? '<span class="solo-desktop"> · <button class="link-btn" type="button" data-compi-toggle>Ocultar mascota</button></span>' : ''}</span>
   </div>
-</div></footer>
+</div></footer>`
 
-<div class="compi" id="compi" data-mood="neutral" aria-hidden="true">
-  <div class="compi-bubble der"></div>
-  ${compiSvg()}
-</div>
-<script type="application/json" id="datos-calendario">${JSON.stringify(cron.dias)}</script>
-`
+/* La mascota es opcional: con "activa": true en data/curso.json aparece Compi (dibujo propio)
+   o, si se indica "imagen", la que se ponga en public/ (PNG, WebP o SVG con fondo transparente). */
+const mascota = curso.mascota ?? { activa: false }
+const bloqueMascota = () => {
+  if (!mascota.activa) return ''
+  const ancho = mascota.ancho ?? 72
+  const dibujo = mascota.imagen
+    ? `<img class="compi-img" src="${single ? esc(mascota.imagen) : `/${esc(mascota.imagen)}`}" alt="" width="${ancho}">`
+    : compiSvg({ size: ancho })
+  return `<div class="compi" id="compi" data-mood="neutral" style="width:${ancho}px" aria-hidden="true"><div class="compi-bubble der"></div>${dibujo}</div>`
+}
+
+const datosCalendario = `<script type="application/json" id="datos-calendario">${JSON.stringify(cron.dias)}</script>`
 
 const CSS = `${fontFaces()}\n${read('src/styles.css')}`
 const JS = `${read('src/shared.js').replace(/^export /gm, '')}\n${read('src/main.js')}`
 const TITULO = 'Diseño de Sistemas de Información · K3003'
 const DESC = 'Página del curso K3003 de Diseño de Sistemas de Información (UTN FRBA): cronograma, roadmap, clases, apuntes y links.'
 
-const pagina = (cuerpo, { css, js, titulo = TITULO, extraHead = '' }) => `<!doctype html>
+const pagina = (cuerpo, { css, js, titulo = TITULO, base = '' }) => `<!doctype html>
 <html lang="es"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(titulo)}</title>
 <meta name="description" content="${esc(DESC)}">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-${extraHead}${css}
+<link rel="icon" href="${base}/favicon.svg" type="image/svg+xml">
+${css}
 </head><body>${cuerpo}${js}</body></html>`
 
 rmSync(out, { recursive: true, force: true })
@@ -222,31 +247,41 @@ mkdirSync(out, { recursive: true })
 
 if (single) {
   // Fragmento para publicarlo como página (sin doctype ni head: los agrega la plataforma).
-  const frag = `<title>DDSI K3003</title>\n<style>${CSS}\nbody{margin:0}</style>\n${body}\n<script>${JS}</script>`
+  const cuerpo = `${cabecera('inicio')}
+<div class="pg" data-pg="inicio">${paginaInicio()}</div>
+<div class="pg" data-pg="roadmap" hidden>${paginaRoadmap()}</div>
+<div class="pg" data-pg="apuntes" hidden>${paginaApuntes()}</div>
+${pie()}${bloqueMascota()}${datosCalendario}`
+  const alternar = `(function(){var nav=document.querySelectorAll('.nav a, .brand, a[href^="#"]');function ir(h){var id=(h||'').replace('#','')||'inicio';var pg=id==='links'?'inicio':id;var ok=false;document.querySelectorAll('.pg').forEach(function(d){var on=d.getAttribute('data-pg')===pg;d.hidden=!on;if(on)ok=true});if(!ok)return;document.querySelectorAll('.nav a').forEach(function(a){a.setAttribute('aria-current',a.getAttribute('href')==='#'+id?'page':'false')});if(id==='links'){var el=document.getElementById('links');if(el)el.scrollIntoView()}else window.scrollTo(0,0)}
+document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href^="#"]');if(!a)return;e.preventDefault();ir(a.getAttribute('href'))});ir(location.hash)})()`
+  const frag = `<title>DDSI K3003</title>\n<style>${CSS}\nbody{margin:0}</style>\n${cuerpo}\n<script>${JS}</script>\n<script>${alternar}</script>`
   writeFileSync(join(out, 'index.html'), frag)
 } else {
   mkdirSync(join(out, 'fonts'), { recursive: true })
   for (const [pkg, , file] of FUENTES) copyFileSync(fuentePath(pkg, file), join(out, 'fonts', file))
+  if (mascota.imagen && existsSync(join(ROOT, 'public', mascota.imagen))) copyFileSync(join(ROOT, 'public', mascota.imagen), join(out, mascota.imagen))
   writeFileSync(join(out, 'styles.css'), CSS)
   writeFileSync(join(out, 'main.js'), JS)
   writeFileSync(join(out, 'favicon.svg'), faviconSvg())
   writeFileSync(join(out, '.nojekyll'), '')
-  writeFileSync(
-    join(out, 'index.html'),
-    pagina(body, { css: '<link rel="stylesheet" href="styles.css">', js: '<script src="main.js" defer></script>' }),
-  )
-  const cuatrocientosCuatro = `
-<header class="top"><div class="wrap"><a class="brand" href="/"><b>DDSI</b><span>k3003</span></a></div></header>
+  const css = '<link rel="stylesheet" href="/styles.css">'
+  const js = '<script src="/main.js" defer></script>'
+  const armar = (actual, main, dir, titulo) => {
+    const html = pagina(`${cabecera(actual)}${main}${pie()}${bloqueMascota()}${datosCalendario}`, { css, js, titulo })
+    const destino = join(out, dir)
+    mkdirSync(destino, { recursive: true })
+    writeFileSync(join(destino, 'index.html'), html)
+  }
+  armar('inicio', paginaInicio(), '', TITULO)
+  armar('roadmap', paginaRoadmap(), 'roadmap', `Roadmap y clases · ${TITULO}`)
+  armar('apuntes', paginaApuntes(), 'apuntes', `Apuntes teóricos · ${TITULO}`)
+  const cuatrocientosCuatro = `${cabecera('')}
 <main class="wrap centro" style="padding-block:72px;text-align:center">
-  <div data-mood="wow" style="display:inline-block;transform:scale(1.8);transform-origin:center bottom;margin:90px 0 56px">${compiSvg()}</div>
   <p class="sig">&gt; error 404<span class="cur"></span></p>
   <h1 style="font-size:clamp(34px,5vw,54px)">Esta página no existe</h1>
   <p class="sub" style="margin-inline:auto">Puede que el link esté mal o que el contenido haya cambiado de lugar.</p>
   <p style="margin-top:28px"><a class="btn btn-p" href="/">Volver al inicio <span class="arr">→</span></a></p>
 </main>`
-  writeFileSync(
-    join(out, '404.html'),
-    pagina(cuatrocientosCuatro, { css: '<link rel="stylesheet" href="/styles.css">', js: '', titulo: 'Página no encontrada · DDSI K3003' }).replace('href="favicon.svg"', 'href="/favicon.svg"'),
-  )
+  writeFileSync(join(out, '404.html'), pagina(cuatrocientosCuatro, { css, js: '', titulo: 'Página no encontrada · DDSI K3003' }))
 }
 console.log(`Listo: ${out} (${cron.dias.length} fechas del cronograma, ${numClases.length} clase/s)`)

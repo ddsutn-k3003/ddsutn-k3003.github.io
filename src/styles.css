@@ -50,8 +50,8 @@ img, svg { max-width: 100%; }
 .nav a { position: relative; padding: 8px 12px; font-size: 15px; font-weight: 600; color: var(--muted); text-decoration: none; white-space: nowrap; transition: color .15s; }
 .nav a::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: 2px; height: 2px; background: var(--rojo); transform: scaleX(0); transform-origin: left; transition: transform .2s ease; }
 .nav a:hover { color: var(--ink); }
-.nav a[aria-current='true'] { color: var(--ink); }
-.nav a[aria-current='true']::after { transform: scaleX(1); }
+.nav a[aria-current='page'] { color: var(--ink); }
+.nav a[aria-current='page']::after { transform: scaleX(1); }
 
 /* Portada */
 .hero { position: relative; overflow: hidden; padding-block: clamp(40px, 7vw, 84px) clamp(40px, 6vw, 72px); }
@@ -92,6 +92,11 @@ h1::after, .h2::after { content: ''; display: block; background: var(--rojo); wi
 .b-tpa { background: var(--ink); color: #fff; }
 .b-sin-clases, .b-receso { background: #efecec; color: var(--muted); }
 
+/* Encabezado de páginas interiores */
+.pagehead { padding-block: clamp(36px, 6vw, 64px) clamp(28px, 4vw, 44px); }
+.h1s { font-size: clamp(34px, 4.8vw, 56px); }
+.pagehead .lede { margin-top: 22px; }
+
 /* Secciones */
 .sec { padding-block: clamp(52px, 8vw, 96px); scroll-margin-top: 60px; }
 .sec.band { background: var(--band); border-block: 1px solid var(--linea); }
@@ -110,6 +115,7 @@ h1::after, .h2::after { content: ''; display: block; background: var(--rojo); wi
 .doc p { margin: 0; color: var(--muted); font-size: 16px; }
 .doc .nota { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; color: var(--bordo); background: var(--rosa); border-radius: 8px; padding: 8px 12px; }
 .doc .btn { margin-top: auto; align-self: flex-start; }
+a.doc { text-decoration: none; color: inherit; }
 .doc.principal { background: var(--rosa); border-color: var(--rosa-2); }
 .arr { display: inline-block; transition: transform .15s; }
 a:hover > .arr, .btn:hover .arr, .doc:hover .arr { transform: translateX(3px); }
@@ -194,7 +200,9 @@ a.lnk:hover { background: var(--rosa); padding-inline: 12px; }
 /* Página 404 */
 .centro h1::after { margin-inline: auto; }
 
-/* Compi */
+/* Mascota (opcional) */
+.compi-img { display: block; width: 100%; height: auto; pointer-events: auto; cursor: pointer; animation: bob 2.8s ease-in-out infinite; }
+.compi.salta .compi-img { animation: hop .6s cubic-bezier(.3, .7, .4, 1); }
 .compi { position: fixed; z-index: 60; right: 14px; bottom: 4px; width: 72px; line-height: 0; pointer-events: none; will-change: transform; }
 .compi.oculto { display: none; }
 .compi-svg { display: block; pointer-events: auto; cursor: pointer; overflow: visible; }
